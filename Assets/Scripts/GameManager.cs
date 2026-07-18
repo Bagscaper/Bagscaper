@@ -749,8 +749,8 @@ public class GameManager : MonoBehaviour
         StartGame();
 
         AddItemToBag("water");
-        AddItemToBag("energy_bar");
-        AddItemToBag("first_aid_kit");
+        AddItemToBag("protein_bar");
+        AddItemToBag("ad_kit");
         AddItemToBag("flashlight");
         AddItemToBag("game_console");
 
