@@ -49,7 +49,7 @@ public class GameLogResponse
 
     public bool applied;
     public int item_count;
-    public int current_weight_grams;
+    public float current_weight_kg;
 }
 
 #endregion

@@ -134,11 +134,10 @@ public class GameApiClient : MonoBehaviour
             }
 
             // applied=false는 에러가 아니라 "이미 있는걸 또 넣거나 없는걸 뺀 경우"입니다.
-            // items(아이템별 개수)는 이 경우에도 서버 기준 값이므로 그대로 동기화합니다.
             gameManager.ApplyServerBagState(
                 response.applied,
                 response.item_count,
-                response.current_weight_grams
+                response.current_weight_kg
             );
         }
     }

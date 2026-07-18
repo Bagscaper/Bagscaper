@@ -450,30 +450,30 @@ public class GameManager : MonoBehaviour
     /// applied=false는 에러가 아니라 "이미 있는 걸 또 넣거나 없는 걸 뺀 경우"이지만,
     /// 이 경우에도 items는 서버 기준 값이므로 그대로 반영합니다.
     /// </summary>
-    public void ApplyServerBagState(
-        bool applied,
-        int itemCount,
-        int currentWeightGrams)
-    {
-        if (!applied)
+        public void ApplyServerBagState(
+            bool applied,
+            int itemCount,
+            float currentWeightKg)
         {
-            Debug.LogWarning(
-                "[GameManager] 서버에서 행동이 적용되지 않았습니다."
+            if (!applied)
+            {
+                Debug.LogWarning(
+                    "[GameManager] 서버에서 행동이 적용되지 않았습니다."
+                );
+            }
+
+            CurrentItemCount = Mathf.Max(
+                0,
+                itemCount
             );
+
+            CurrentWeightKg = Mathf.Max(
+                0f,
+                currentWeightKg
+            );
+
+            BagStateChanged?.Invoke();
         }
-
-        CurrentItemCount = Mathf.Max(
-            0,
-            itemCount
-        );
-
-        CurrentWeightKg = Mathf.Max(
-            0,
-            currentWeightGrams
-        ) / 1000f;
-
-        BagStateChanged?.Invoke();
-    }
 
     /// <summary>
     /// 제한 시간 종료 또는 완료 버튼에서 호출합니다.
