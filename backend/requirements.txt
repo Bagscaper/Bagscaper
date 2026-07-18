@@ -1,0 +1,13 @@
+# Direct dependency input. Install requirements.lock for reproducible environments.
+fastapi==0.116.1
+httpx==0.28.1
+mypy==2.3.0
+google-genai==2.11.0
+opentelemetry-api==1.43.0
+pydantic==2.13.4
+pydantic-settings==2.10.1
+uvicorn[standard]==0.35.0
+pytest==8.4.1
+pytest-asyncio==1.1.0
+pytest-cov==7.1.0
+ruff==0.15.20

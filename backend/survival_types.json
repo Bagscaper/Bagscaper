@@ -1,0 +1,57 @@
+[
+  {
+    "type_code": "SPSP",
+    "name": "Smart Planner Survivor",
+    "description": "균형 잡힌 준비형"
+  },
+  {
+    "type_code": "ESST",
+    "name": "Efficient Survival Strategist",
+    "description": "최소한의 장비로 최대 효율"
+  },
+  {
+    "type_code": "OWLP",
+    "name": "Overloaded Warrior",
+    "description": "너무 많은 물건을 챙김"
+  },
+  {
+    "type_code": "RISK",
+    "name": "Risk Taker",
+    "description": "필수 물품이 많이 부족함"
+  },
+  {
+    "type_code": "MEDI",
+    "name": "Medical Guardian",
+    "description": "응급용품 중심"
+  },
+  {
+    "type_code": "EXPL",
+    "name": "Explorer",
+    "description": "도구 위주 선택"
+  },
+  {
+    "type_code": "SAFE",
+    "name": "Safety First",
+    "description": "안전장비 중심"
+  },
+  {
+    "type_code": "LUCK",
+    "name": "Lucky Survivor",
+    "description": "운 좋게 생존 가능한 구성"
+  },
+  {
+    "type_code": "CRDP",
+    "name": "Critical Resource Dropper",
+    "description": "중요한 생존 물품을 선택한 뒤 다시 제거한 유형"
+  },
+  {
+    "type_code": "DRSP",
+    "name": "Disaster Relevance Shortfall",
+    "description": "현재 재난과 관련된 물품의 선택 비율이 부족한 유형"
+  },
+  {
+    "type_code": "PRPS",
+    "name": "Practical Survivor",
+    "description": "다른 우선 유형에 해당하지 않는 기본 생존 준비 유형"
+  }
+]
