@@ -311,10 +311,20 @@ public class GameManager : MonoBehaviour
     /// 로컬 상태를 즉시(낙관적으로) 갱신하고, /game/log INSERT 요청을 발생시킵니다.
     /// 서버 응답이 오면 ApplyServerBagState(...)가 실제 값으로 다시 동기화합니다.
     /// </summary>
-    public bool AddItemToBag(string itemId)
+    public bool AddItemToBag(
+        string itemId,
+        string itemInstanceId)
     {
         if (!CanModifyBag())
         {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(itemInstanceId))
+        {
+            Debug.LogError(
+                "[GameManager] itemInstanceId가 비어 있습니다."
+            );
             return false;
         }
 
@@ -342,7 +352,11 @@ public class GameManager : MonoBehaviour
 
         BagStateChanged?.Invoke();
 
-        RequestBagLog("INSERT", itemId);
+        RequestBagLog(
+            "INSERT",
+            itemId,
+            itemInstanceId
+        );
 
         return true;
     }
@@ -352,10 +366,20 @@ public class GameManager : MonoBehaviour
     /// 로컬 상태를 즉시(낙관적으로) 갱신하고, /game/log REMOVE 요청을 발생시킵니다.
     /// 서버 응답이 오면 ApplyServerBagState(...)가 실제 값으로 다시 동기화합니다.
     /// </summary>
-    public bool RemoveItemFromBag(string itemId)
+    public bool RemoveItemFromBag(
+        string itemId,
+        string itemInstanceId)
     {
         if (!CanModifyBag())
         {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(itemInstanceId))
+        {
+            Debug.LogError(
+                "[GameManager] itemInstanceId가 비어 있습니다."
+            );
             return false;
         }
 
@@ -399,7 +423,11 @@ public class GameManager : MonoBehaviour
 
         BagStateChanged?.Invoke();
 
-        RequestBagLog("REMOVE", itemId);
+        RequestBagLog(
+            "REMOVE",
+            itemId,
+            itemInstanceId
+        );
 
         return true;
     }
@@ -425,48 +453,24 @@ public class GameManager : MonoBehaviour
     public void ApplyServerBagState(
         bool applied,
         int itemCount,
-        int currentWeightGrams,
-        List<GameLogItemQuantity> items)
+        int currentWeightGrams)
     {
         if (!applied)
         {
             Debug.LogWarning(
-                "[GameManager] 서버에서 가방 행동이 적용되지 않았습니다(applied=false). " +
-                "서버 기준 수치로 동기화합니다."
+                "[GameManager] 서버에서 행동이 적용되지 않았습니다."
             );
         }
 
-        if (items != null)
-        {
-            selectedItemQuantities.Clear();
+        CurrentItemCount = Mathf.Max(
+            0,
+            itemCount
+        );
 
-            foreach (GameLogItemQuantity entry in items)
-            {
-                if (entry == null ||
-                    string.IsNullOrWhiteSpace(entry.item_id) ||
-                    entry.quantity <= 0)
-                {
-                    continue;
-                }
-
-                selectedItemQuantities[entry.item_id] = entry.quantity;
-            }
-
-            // 아이템별 개수를 기준으로 총 개수/무게를 다시 계산합니다.
-            RefreshLocalBagState();
-        }
-        else
-        {
-            // 구버전 서버 호환용 폴백: items가 없으면 기존처럼 총 개수/무게만 반영합니다.
-            Debug.LogWarning(
-                "[GameManager] /game/log 응답에 items가 없어 총 개수/무게만 동기화합니다."
-            );
-
-            CurrentItemCount = Mathf.Max(0, itemCount);
-            CurrentWeightKg = RoundToTwoDecimals(
-                Mathf.Max(0, currentWeightGrams) / 1000f
-            );
-        }
+        CurrentWeightKg = Mathf.Max(
+            0,
+            currentWeightGrams
+        ) / 1000f;
 
         BagStateChanged?.Invoke();
     }
@@ -566,7 +570,10 @@ public class GameManager : MonoBehaviour
     /// GameApiClient 쪽에서 재시도할 때는 이 메서드를 다시 호출하지 말고
     /// 넘겨받은 GameLogRequest 객체를 그대로 재사용해야 합니다.
     /// </summary>
-    private void RequestBagLog(string action, string itemId)
+    private void RequestBagLog(
+        string action,
+        string itemId,
+        string itemInstanceId)
     {
         if (!HasSession)
         {
@@ -581,8 +588,12 @@ public class GameManager : MonoBehaviour
             session_id = SessionId,
             action_id = Guid.NewGuid().ToString(),
             action = action,
+            item_instance_id = itemInstanceId,
             item_id = itemId,
-            occurred_at = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+            occurred_at =
+                DateTime.UtcNow.ToString(
+                    "yyyy-MM-ddTHH:mm:ssZ"
+                )
         });
     }
 
@@ -748,11 +759,30 @@ public class GameManager : MonoBehaviour
 
         StartGame();
 
-        AddItemToBag("water");
-        AddItemToBag("protein_bar");
-        AddItemToBag("ad_kit");
-        AddItemToBag("flashlight");
-        AddItemToBag("game_console");
+        AddItemToBag(
+            "water",
+            Guid.NewGuid().ToString()
+        );
+
+        AddItemToBag(
+            "protein_bar",
+            Guid.NewGuid().ToString()
+        );
+
+        AddItemToBag(
+            "ad_kit",
+            Guid.NewGuid().ToString()
+        );
+
+        AddItemToBag(
+            "flashlight",
+            Guid.NewGuid().ToString()
+        );
+
+        AddItemToBag(
+            "game_console",
+            Guid.NewGuid().ToString()
+        );
 
         EndGame();
     }

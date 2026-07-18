@@ -138,8 +138,7 @@ public class GameApiClient : MonoBehaviour
             gameManager.ApplyServerBagState(
                 response.applied,
                 response.item_count,
-                response.current_weight_grams,
-                response.items
+                response.current_weight_grams
             );
         }
     }
