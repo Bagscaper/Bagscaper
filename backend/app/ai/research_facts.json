@@ -1,0 +1,22 @@
+[
+  {
+    "fact_id": "water_and_hygiene_001",
+    "statement_ko": "재난 대비에서는 안전한 식수와 위생 수단을 함께 고려한다. BAGSCAPE의 필요 수분 수치는 게임 밸런스 값이다.",
+    "source_organization": "미국 연방재난관리청",
+    "source_document": "Ready.gov Water guidance",
+    "source_url": "https://www.ready.gov/water",
+    "reviewed_at": "2026-07-19",
+    "reviewed_by": "BAGSCAPE 콘텐츠 검수",
+    "source_revision": "2026-07-19 열람"
+  },
+  {
+    "fact_id": "emergency_kit_001",
+    "statement_ko": "비상용품은 응급 처치, 조명, 통신, 보온처럼 서로 다른 생존 기능을 함께 갖추는 것이 중요하다.",
+    "source_organization": "미국 연방재난관리청",
+    "source_document": "Ready.gov Build A Kit",
+    "source_url": "https://www.ready.gov/kit",
+    "reviewed_at": "2026-07-19",
+    "reviewed_by": "BAGSCAPE 콘텐츠 검수",
+    "source_revision": "2026-07-19 열람"
+  }
+]
