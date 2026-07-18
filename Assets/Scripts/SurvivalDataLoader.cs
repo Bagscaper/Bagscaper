@@ -1,12 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// survival_items.json을 로드하고 itemId로 아이템을 조회할 수 있게 해주는 로더입니다.
-///
-/// 씬의 빈 오브젝트에 붙인 뒤 Inspector의 Survival Items Json에
-/// survival_items.json 파일을 연결하세요.
-/// </summary>
 public class SurvivalDataLoader : MonoBehaviour
 {
     public static SurvivalDataLoader Instance { get; private set; }
@@ -32,9 +26,6 @@ public class SurvivalDataLoader : MonoBehaviour
         LoadData();
     }
 
-    /// <summary>
-    /// Inspector에 연결된 survival_items.json을 다시 로드합니다.
-    /// </summary>
     public void LoadData()
     {
         IsLoaded = false;
@@ -43,18 +34,15 @@ public class SurvivalDataLoader : MonoBehaviour
 
         if (survivalItemsJson == null)
         {
-            Debug.LogError(
-                "[SurvivalDataLoader] Survival Items Json이 연결되지 않았습니다."
-            );
+            Debug.LogError("[SurvivalDataLoader] Survival Items Json이 연결되지 않았습니다.");
             return;
         }
 
         try
         {
-            ItemDatabase =
-                JsonUtility.FromJson<SurvivalItemDatabase>(
-                    survivalItemsJson.text
-                );
+            ItemDatabase = JsonUtility.FromJson<SurvivalItemDatabase>(
+                survivalItemsJson.text
+            );
         }
         catch (System.Exception exception)
         {
@@ -65,34 +53,16 @@ public class SurvivalDataLoader : MonoBehaviour
             return;
         }
 
-        if (ItemDatabase == null)
+        if (ItemDatabase == null || ItemDatabase.items == null)
         {
-            Debug.LogError(
-                "[SurvivalDataLoader] JSON 파싱 결과가 null입니다."
-            );
-            return;
-        }
-
-        if (ItemDatabase.items == null)
-        {
-            Debug.LogError(
-                "[SurvivalDataLoader] JSON에 items 배열이 없습니다."
-            );
+            Debug.LogError("[SurvivalDataLoader] JSON에 items 배열이 없습니다.");
             return;
         }
 
         foreach (SurvivalItemData item in ItemDatabase.items)
         {
-            if (item == null)
+            if (item == null || string.IsNullOrWhiteSpace(item.itemId))
             {
-                continue;
-            }
-
-            if (string.IsNullOrWhiteSpace(item.itemId))
-            {
-                Debug.LogWarning(
-                    "[SurvivalDataLoader] itemId가 비어 있는 아이템을 건너뜁니다."
-                );
                 continue;
             }
 
@@ -108,16 +78,9 @@ public class SurvivalDataLoader : MonoBehaviour
         }
 
         IsLoaded = true;
-
-        Debug.Log(
-            $"[SurvivalDataLoader] 아이템 {itemById.Count}개 로드 완료"
-        );
+        Debug.Log($"[SurvivalDataLoader] 아이템 {itemById.Count}개 로드 완료");
     }
 
-    /// <summary>
-    /// itemId와 일치하는 아이템을 반환합니다.
-    /// 찾지 못하면 null을 반환합니다.
-    /// </summary>
     public SurvivalItemData GetItemById(string itemId)
     {
         if (string.IsNullOrWhiteSpace(itemId))
@@ -125,30 +88,21 @@ public class SurvivalDataLoader : MonoBehaviour
             return null;
         }
 
-        return itemById.TryGetValue(
-            itemId,
-            out SurvivalItemData item
-        )
+        return itemById.TryGetValue(itemId, out SurvivalItemData item)
             ? item
             : null;
     }
 
-    /// <summary>
-    /// 특정 itemId가 현재 로드된 데이터에 존재하는지 확인합니다.
-    /// </summary>
     public bool ContainsItem(string itemId)
     {
-        return !string.IsNullOrWhiteSpace(itemId) &&
-               itemById.ContainsKey(itemId);
+        return !string.IsNullOrWhiteSpace(itemId) && itemById.ContainsKey(itemId);
     }
 
 #if UNITY_EDITOR
-
     [ContextMenu("Reload Survival Item Data")]
     private void ReloadFromContextMenu()
     {
         LoadData();
     }
-
 #endif
 }

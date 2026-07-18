@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "description": "생존가방 싸기 게임용 전체 아이템 목록",
+  "description": "생존가방 게임용 아이템 목록",
   "items": [
     {
-      "itemId": "water",
+      "itemId": "item_water",
       "itemName": "생수",
       "category": "Water",
       "categoryLabel": "식수",
@@ -21,7 +21,7 @@
       ]
     },
     {
-      "itemId": "protein_bar",
+      "itemId": "item_protein_bar",
       "itemName": "단백질바",
       "category": "Food",
       "categoryLabel": "식량",
@@ -40,7 +40,7 @@
       ]
     },
     {
-      "itemId": "chocolate",
+      "itemId": "item_chocolate",
       "itemName": "초콜릿",
       "category": "Food",
       "categoryLabel": "식량",
@@ -59,7 +59,7 @@
       ]
     },
     {
-      "itemId": "canned_food",
+      "itemId": "item_canned_food",
       "itemName": "통조림",
       "category": "Food",
       "categoryLabel": "식량",
@@ -78,7 +78,7 @@
       ]
     },
     {
-      "itemId": "cup_noodle",
+      "itemId": "item_cup_noodle",
       "itemName": "컵라면",
       "category": "Food",
       "categoryLabel": "식량",
@@ -97,8 +97,8 @@
       ]
     },
     {
-      "itemId": "ad_kit",
-      "itemName": "AD 키트(구급상자+상비약+붕대)",
+      "itemId": "item_first_aid_kit",
+      "itemName": "구급상자, 상비약, 붕대 - AD 키트 1개",
       "category": "Medical",
       "categoryLabel": "응급",
       "weight": 1.3,
@@ -116,7 +116,7 @@
       ]
     },
     {
-      "itemId": "flashlight",
+      "itemId": "item_flashlight",
       "itemName": "손전등",
       "category": "Light",
       "categoryLabel": "조명",
@@ -137,7 +137,7 @@
       ]
     },
     {
-      "itemId": "power_bank",
+      "itemId": "item_power_bank",
       "itemName": "보조배터리",
       "category": "Power",
       "categoryLabel": "전력",
@@ -154,7 +154,7 @@
       ]
     },
     {
-      "itemId": "portable_radio",
+      "itemId": "item_radio",
       "itemName": "휴대용 라디오",
       "category": "Communication",
       "categoryLabel": "통신",
@@ -173,7 +173,25 @@
       ]
     },
     {
-      "itemId": "blanket",
+      "itemId": "item_lighter",
+      "itemName": "라이터",
+      "category": "Survival",
+      "categoryLabel": "생존",
+      "weight": 0.1,
+      "importance": 3,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "Mountain",
+        "ColdWave"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "item_blanket",
       "itemName": "담요",
       "category": "Warmth",
       "categoryLabel": "보온",
@@ -190,7 +208,7 @@
       ]
     },
     {
-      "itemId": "sleeping_bag",
+      "itemId": "item_sleeping_bag",
       "itemName": "침낭",
       "category": "Warmth",
       "categoryLabel": "보온",
@@ -207,7 +225,7 @@
       ]
     },
     {
-      "itemId": "extra_clothes",
+      "itemId": "item_extra_clothes",
       "itemName": "여벌 옷",
       "category": "Clothing",
       "categoryLabel": "의류",
@@ -224,7 +242,7 @@
       ]
     },
     {
-      "itemId": "shoes",
+      "itemId": "item_shoes",
       "itemName": "신발",
       "category": "Clothing",
       "categoryLabel": "의류",
@@ -241,8 +259,8 @@
       ]
     },
     {
-      "itemId": "wet_wipes",
-      "itemName": "물티슈",
+      "itemId": "item_wet_wipes",
+      "itemName": "물티슈, 휴지",
       "category": "Hygiene",
       "categoryLabel": "위생",
       "weight": 0.2,
@@ -260,26 +278,7 @@
       ]
     },
     {
-      "itemId": "tissue",
-      "itemName": "휴지",
-      "category": "Hygiene",
-      "categoryLabel": "위생",
-      "weight": 0.2,
-      "importance": 3,
-      "duplicateGroup": "hygiene",
-      "usageContexts": [
-        "All"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
-      "itemId": "game_console",
+      "itemId": "item_game_console",
       "itemName": "게임기",
       "category": "Entertainment",
       "categoryLabel": "오락",
@@ -297,7 +296,7 @@
       ]
     },
     {
-      "itemId": "laptop",
+      "itemId": "item_laptop",
       "itemName": "노트북",
       "category": "Electronics",
       "categoryLabel": "전자기기",
@@ -315,7 +314,7 @@
       ]
     },
     {
-      "itemId": "stuffed_toy",
+      "itemId": "item_doll",
       "itemName": "인형",
       "category": "Hobby",
       "categoryLabel": "취미",
@@ -333,7 +332,7 @@
       ]
     },
     {
-      "itemId": "high_heels",
+      "itemId": "item_high_heels",
       "itemName": "하이힐",
       "category": "Clothing",
       "categoryLabel": "의류",
@@ -350,7 +349,7 @@
       ]
     },
     {
-      "itemId": "wine",
+      "itemId": "item_wine",
       "itemName": "와인",
       "category": "Beverage",
       "categoryLabel": "음료",
@@ -369,7 +368,7 @@
       ]
     },
     {
-      "itemId": "coffee_machine",
+      "itemId": "item_coffee_machine",
       "itemName": "커피머신",
       "category": "Appliance",
       "categoryLabel": "가전제품",
@@ -387,7 +386,7 @@
       ]
     },
     {
-      "itemId": "tv_remote",
+      "itemId": "item_tv_remote",
       "itemName": "TV 리모컨",
       "category": "Electronics",
       "categoryLabel": "전자기기",
@@ -405,7 +404,7 @@
       ]
     },
     {
-      "itemId": "headset",
+      "itemId": "item_headset",
       "itemName": "헤드셋",
       "category": "Electronics",
       "categoryLabel": "전자기기",
@@ -423,7 +422,7 @@
       ]
     },
     {
-      "itemId": "cosmetics_set",
+      "itemId": "item_cosmetics",
       "itemName": "화장품 세트",
       "category": "Beauty",
       "categoryLabel": "미용",
@@ -442,7 +441,7 @@
       ]
     },
     {
-      "itemId": "perfume",
+      "itemId": "item_perfume",
       "itemName": "향수",
       "category": "Beauty",
       "categoryLabel": "미용",
@@ -461,7 +460,7 @@
       ]
     },
     {
-      "itemId": "large_cushion",
+      "itemId": "item_large_cushion",
       "itemName": "대형 쿠션",
       "category": "Household",
       "categoryLabel": "생활용품",
@@ -478,7 +477,7 @@
       ]
     },
     {
-      "itemId": "textbook",
+      "itemId": "item_textbook",
       "itemName": "전공책",
       "category": "Learning",
       "categoryLabel": "학습",
@@ -497,7 +496,7 @@
       ]
     },
     {
-      "itemId": "large_snack",
+      "itemId": "item_large_snack",
       "itemName": "대용량 과자",
       "category": "Food",
       "categoryLabel": "식량",

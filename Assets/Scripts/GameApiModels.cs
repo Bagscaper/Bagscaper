@@ -30,13 +30,8 @@ public class GameLogRequest
     public string session_id;
     public string action_id;
     public string action;
-
-    // 개별 3D 물체의 UUID
     public string item_instance_id;
-
-    // 물품 종류 ID
     public string item_id;
-
     public string occurred_at;
 }
 
@@ -46,7 +41,6 @@ public class GameLogResponse
     public string session_id;
     public string action_id;
     public string item_instance_id;
-
     public bool applied;
     public int item_count;
     public int current_weight_grams;
@@ -66,7 +60,13 @@ public class GameResultRequest
 public class GameResultResponse
 {
     public string survival_type;
+
+    // 새 API에서 권장하는 AI 코멘트 필드입니다.
+    public string ai_comment;
+
+    // 기존 서버와의 하위 호환용 필드입니다.
     public string evaluation_narrative;
+
     public int survival_time_hours;
 }
 
