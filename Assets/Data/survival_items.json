@@ -1,0 +1,786 @@
+{
+  "version": 2,
+  "description": "생존가방 싸기 게임용 전체 아이템 목록",
+  "items": [
+    {
+      "itemId": "water",
+      "itemName": "생수",
+      "category": "Water",
+      "categoryLabel": "식수",
+      "weight": 2.0,
+      "importance": 5,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "water_filter",
+      "itemName": "정수 필터",
+      "category": "Water",
+      "categoryLabel": "식수",
+      "weight": 0.3,
+      "importance": 5,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "Flood",
+        "Mountain"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "energy_bar",
+      "itemName": "에너지바",
+      "category": "Food",
+      "categoryLabel": "식량",
+      "weight": 0.2,
+      "importance": 5,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "canned_food",
+      "itemName": "통조림",
+      "category": "Food",
+      "categoryLabel": "식량",
+      "weight": 0.5,
+      "importance": 4,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "cup_noodle",
+      "itemName": "컵라면",
+      "category": "Food",
+      "categoryLabel": "식량",
+      "weight": 0.3,
+      "importance": 2,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "RequiresWater"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "first_aid_kit",
+      "itemName": "구급상자",
+      "category": "Medical",
+      "categoryLabel": "응급",
+      "weight": 1.0,
+      "importance": 5,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "medicine",
+      "itemName": "상비약",
+      "category": "Medical",
+      "categoryLabel": "응급",
+      "weight": 0.2,
+      "importance": 5,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "bandage",
+      "itemName": "붕대",
+      "category": "Medical",
+      "categoryLabel": "응급",
+      "weight": 0.1,
+      "importance": 4,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "flashlight",
+      "itemName": "손전등",
+      "category": "Light",
+      "categoryLabel": "조명",
+      "weight": 0.3,
+      "importance": 5,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "Fire",
+        "Earthquake",
+        "Blackout"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "power_bank",
+      "itemName": "보조배터리",
+      "category": "Power",
+      "categoryLabel": "전력",
+      "weight": 0.4,
+      "importance": 4,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "portable_radio",
+      "itemName": "휴대용 라디오",
+      "category": "Communication",
+      "categoryLabel": "통신",
+      "weight": 0.5,
+      "importance": 4,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "whistle",
+      "itemName": "호루라기",
+      "category": "Rescue",
+      "categoryLabel": "구조",
+      "weight": 0.05,
+      "importance": 5,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "multi_tool",
+      "itemName": "멀티툴",
+      "category": "Survival",
+      "categoryLabel": "생존",
+      "weight": 0.3,
+      "importance": 4,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "lighter",
+      "itemName": "라이터",
+      "category": "Survival",
+      "categoryLabel": "생존",
+      "weight": 0.1,
+      "importance": 3,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "Mountain",
+        "ColdWave"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "blanket",
+      "itemName": "담요",
+      "category": "Warmth",
+      "categoryLabel": "보온",
+      "weight": 0.7,
+      "importance": 4,
+      "duplicateGroup": "warmth",
+      "usageContexts": [
+        "ColdWave"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "sofa",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "sleeping_bag",
+      "itemName": "침낭",
+      "category": "Warmth",
+      "categoryLabel": "보온",
+      "weight": 1.5,
+      "importance": 5,
+      "duplicateGroup": "warmth",
+      "usageContexts": [
+        "LongTermSurvival"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "sofa",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "extra_clothes",
+      "itemName": "여벌 옷",
+      "category": "Clothing",
+      "categoryLabel": "의류",
+      "weight": 0.8,
+      "importance": 3,
+      "duplicateGroup": "warmth",
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "sofa",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "raincoat",
+      "itemName": "우비",
+      "category": "Clothing",
+      "categoryLabel": "의류",
+      "weight": 0.3,
+      "importance": 4,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "Typhoon",
+        "Flood"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "sofa",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "cash",
+      "itemName": "현금",
+      "category": "Other",
+      "categoryLabel": "기타",
+      "weight": 0.0,
+      "importance": 3,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "PostEvacuation"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "id_card",
+      "itemName": "신분증",
+      "category": "Other",
+      "categoryLabel": "기타",
+      "weight": 0.0,
+      "importance": 4,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "PostEvacuation"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "kf94_mask",
+      "itemName": "KF94 마스크",
+      "category": "Protection",
+      "categoryLabel": "보호",
+      "weight": 0.05,
+      "importance": 5,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "Fire",
+        "Wildfire"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "gloves",
+      "itemName": "장갑",
+      "category": "Protection",
+      "categoryLabel": "보호",
+      "weight": 0.1,
+      "importance": 3,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "RescueActivity"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "wet_wipes",
+      "itemName": "물티슈",
+      "category": "Hygiene",
+      "categoryLabel": "위생",
+      "weight": 0.2,
+      "importance": 3,
+      "duplicateGroup": "hygiene",
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "tissue",
+      "itemName": "휴지",
+      "category": "Hygiene",
+      "categoryLabel": "위생",
+      "weight": 0.2,
+      "importance": 3,
+      "duplicateGroup": "hygiene",
+      "usageContexts": [
+        "All"
+      ],
+      "isTrap": false,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "game_console",
+      "itemName": "게임기",
+      "category": "Entertainment",
+      "categoryLabel": "오락",
+      "weight": 0.4,
+      "importance": 1,
+      "duplicateGroup": "entertainment",
+      "usageContexts": [
+        "LongTermEvacuation"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "sofa"
+      ]
+    },
+    {
+      "itemId": "laptop",
+      "itemName": "노트북",
+      "category": "Electronics",
+      "categoryLabel": "전자기기",
+      "weight": 1.5,
+      "importance": 2,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "PostEvacuation"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "sofa"
+      ]
+    },
+    {
+      "itemId": "monitor",
+      "itemName": "모니터",
+      "category": "Electronics",
+      "categoryLabel": "전자기기",
+      "weight": 4.0,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "stuffed_toy",
+      "itemName": "인형",
+      "category": "Hobby",
+      "categoryLabel": "취미",
+      "weight": 0.5,
+      "importance": 1,
+      "duplicateGroup": "comfort",
+      "usageContexts": [
+        "LongTermEvacuation"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "sofa"
+      ]
+    },
+    {
+      "itemId": "guitar",
+      "itemName": "기타",
+      "category": "Hobby",
+      "categoryLabel": "취미",
+      "weight": 3.0,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "sofa",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "high_heels",
+      "itemName": "하이힐",
+      "category": "Clothing",
+      "categoryLabel": "의류",
+      "weight": 0.6,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "sofa",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "wine",
+      "itemName": "와인",
+      "category": "Beverage",
+      "categoryLabel": "음료",
+      "weight": 1.2,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "coffee_machine",
+      "itemName": "커피머신",
+      "category": "Appliance",
+      "categoryLabel": "가전제품",
+      "weight": 3.0,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "vacuum_cleaner",
+      "itemName": "청소기",
+      "category": "Appliance",
+      "categoryLabel": "가전제품",
+      "weight": 4.0,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "floor"
+      ]
+    },
+    {
+      "itemId": "large_mirror",
+      "itemName": "대형 거울",
+      "category": "Household",
+      "categoryLabel": "생활용품",
+      "weight": 5.0,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "floor"
+      ]
+    },
+    {
+      "itemId": "tv_remote",
+      "itemName": "TV 리모컨",
+      "category": "Electronics",
+      "categoryLabel": "전자기기",
+      "weight": 0.1,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "sofa"
+      ]
+    },
+    {
+      "itemId": "headset",
+      "itemName": "헤드셋",
+      "category": "Electronics",
+      "categoryLabel": "전자기기",
+      "weight": 0.3,
+      "importance": 1,
+      "duplicateGroup": "entertainment",
+      "usageContexts": [
+        "LongTermEvacuation"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "sofa"
+      ]
+    },
+    {
+      "itemId": "cosmetics_set",
+      "itemName": "화장품 세트",
+      "category": "Beauty",
+      "categoryLabel": "미용",
+      "weight": 0.8,
+      "importance": 1,
+      "duplicateGroup": "beauty",
+      "usageContexts": [
+        "PostEvacuation"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "perfume",
+      "itemName": "향수",
+      "category": "Beauty",
+      "categoryLabel": "미용",
+      "weight": 0.3,
+      "importance": 0,
+      "duplicateGroup": "beauty",
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "large_cushion",
+      "itemName": "대형 쿠션",
+      "category": "Household",
+      "categoryLabel": "생활용품",
+      "weight": 1.0,
+      "importance": 1,
+      "duplicateGroup": "comfort",
+      "usageContexts": [
+        "LongTermEvacuation"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "sofa",
+        "floor"
+      ]
+    },
+    {
+      "itemId": "textbook",
+      "itemName": "전공책",
+      "category": "Learning",
+      "categoryLabel": "학습",
+      "weight": 1.5,
+      "importance": 0,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "bookshelf_1",
+        "bookshelf_2",
+        "table_1",
+        "table_2"
+      ]
+    },
+    {
+      "itemId": "vr_headset",
+      "itemName": "VR 기기",
+      "category": "Electronics",
+      "categoryLabel": "전자기기",
+      "weight": 0.8,
+      "importance": 0,
+      "duplicateGroup": "entertainment",
+      "usageContexts": [
+        "None"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "sofa"
+      ]
+    },
+    {
+      "itemId": "large_snack",
+      "itemName": "대용량 과자",
+      "category": "Food",
+      "categoryLabel": "식량",
+      "weight": 0.8,
+      "importance": 2,
+      "duplicateGroup": null,
+      "usageContexts": [
+        "LongTermEvacuation"
+      ],
+      "isTrap": true,
+      "allowedSpawnAreas": [
+        "table_1",
+        "table_2",
+        "sofa"
+      ]
+    }
+  ],
+  "spawnAreas": [
+    "bookshelf_1",
+    "bookshelf_2",
+    "table_1",
+    "table_2",
+    "sofa",
+    "floor"
+  ]
+}

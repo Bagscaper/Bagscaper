@@ -1,0 +1,537 @@
+{
+  "version": 1,
+  "description": "생존가방 게임 규칙 기반 점수 계산 설정",
+  "supportedDisasters": [
+    "Earthquake",
+    "Flood",
+    "Fire",
+    "Wildfire",
+    "Typhoon",
+    "Heatwave",
+    "ColdWave",
+    "Blackout",
+    "Mountain",
+    "PostEvacuation",
+    "LongTermEvacuation",
+    "LongTermSurvival"
+  ],
+  "scoreGroups": [
+    {
+      "scoreGroup": "Water",
+      "maxScore": 25
+    },
+    {
+      "scoreGroup": "Food",
+      "maxScore": 20
+    },
+    {
+      "scoreGroup": "Medical",
+      "maxScore": 20
+    },
+    {
+      "scoreGroup": "Equipment",
+      "maxScore": 15
+    },
+    {
+      "scoreGroup": "Warmth",
+      "maxScore": 15
+    },
+    {
+      "scoreGroup": "WeightEfficiency",
+      "maxScore": 5
+    }
+  ],
+  "itemRules": [
+    {
+      "itemId": "water",
+      "scoreGroup": "Water",
+      "baseScore": 18,
+      "recommendedMin": 1,
+      "recommendedMax": 2,
+      "essential": true,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Heatwave",
+          "bonus": 5
+        },
+        {
+          "disaster": "Wildfire",
+          "bonus": 3
+        },
+        {
+          "disaster": "Flood",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "water_filter",
+      "scoreGroup": "Water",
+      "baseScore": 7,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Flood",
+          "bonus": 3
+        },
+        {
+          "disaster": "Mountain",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "energy_bar",
+      "scoreGroup": "Food",
+      "baseScore": 10,
+      "recommendedMin": 1,
+      "recommendedMax": 3,
+      "essential": true,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Earthquake",
+          "bonus": 2
+        },
+        {
+          "disaster": "Typhoon",
+          "bonus": 1
+        }
+      ]
+    },
+    {
+      "itemId": "canned_food",
+      "scoreGroup": "Food",
+      "baseScore": 7,
+      "recommendedMin": 1,
+      "recommendedMax": 2,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Typhoon",
+          "bonus": 2
+        },
+        {
+          "disaster": "Flood",
+          "bonus": 1
+        }
+      ]
+    },
+    {
+      "itemId": "cup_noodle",
+      "scoreGroup": "Food",
+      "baseScore": 3,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [
+        "water"
+      ],
+      "disasterBonuses": [
+        {
+          "disaster": "ColdWave",
+          "bonus": 1
+        }
+      ],
+      "scoreWhenRequirementsMissing": 1
+    },
+    {
+      "itemId": "first_aid_kit",
+      "scoreGroup": "Medical",
+      "baseScore": 10,
+      "recommendedMin": 1,
+      "recommendedMax": 1,
+      "essential": true,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Earthquake",
+          "bonus": 3
+        },
+        {
+          "disaster": "Fire",
+          "bonus": 2
+        },
+        {
+          "disaster": "Flood",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "medicine",
+      "scoreGroup": "Medical",
+      "baseScore": 6,
+      "recommendedMin": 1,
+      "recommendedMax": 1,
+      "essential": true,
+      "requiredItemIds": [],
+      "disasterBonuses": []
+    },
+    {
+      "itemId": "bandage",
+      "scoreGroup": "Medical",
+      "baseScore": 4,
+      "recommendedMin": 1,
+      "recommendedMax": 2,
+      "essential": true,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Earthquake",
+          "bonus": 2
+        },
+        {
+          "disaster": "Fire",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "wet_wipes",
+      "scoreGroup": "Medical",
+      "baseScore": 1,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Flood",
+          "bonus": 1
+        }
+      ]
+    },
+    {
+      "itemId": "tissue",
+      "scoreGroup": "Medical",
+      "baseScore": 0,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": []
+    },
+    {
+      "itemId": "flashlight",
+      "scoreGroup": "Equipment",
+      "baseScore": 5,
+      "recommendedMin": 1,
+      "recommendedMax": 1,
+      "essential": true,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Earthquake",
+          "bonus": 4
+        },
+        {
+          "disaster": "Typhoon",
+          "bonus": 2
+        },
+        {
+          "disaster": "Blackout",
+          "bonus": 3
+        },
+        {
+          "disaster": "Fire",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "power_bank",
+      "scoreGroup": "Equipment",
+      "baseScore": 1,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Typhoon",
+          "bonus": 1
+        },
+        {
+          "disaster": "Blackout",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "portable_radio",
+      "scoreGroup": "Equipment",
+      "baseScore": 4,
+      "recommendedMin": 1,
+      "recommendedMax": 1,
+      "essential": true,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Earthquake",
+          "bonus": 3
+        },
+        {
+          "disaster": "Typhoon",
+          "bonus": 3
+        },
+        {
+          "disaster": "Flood",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "whistle",
+      "scoreGroup": "Equipment",
+      "baseScore": 2,
+      "recommendedMin": 1,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Earthquake",
+          "bonus": 3
+        },
+        {
+          "disaster": "Flood",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "multi_tool",
+      "scoreGroup": "Equipment",
+      "baseScore": 2,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Earthquake",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "lighter",
+      "scoreGroup": "Equipment",
+      "baseScore": 1,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "ColdWave",
+          "bonus": 2
+        },
+        {
+          "disaster": "Mountain",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "cash",
+      "scoreGroup": "Equipment",
+      "baseScore": 1,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "PostEvacuation",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "id_card",
+      "scoreGroup": "Equipment",
+      "baseScore": 1,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "PostEvacuation",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "blanket",
+      "scoreGroup": "Warmth",
+      "baseScore": 4,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "ColdWave",
+          "bonus": 5
+        },
+        {
+          "disaster": "Earthquake",
+          "bonus": 2
+        }
+      ]
+    },
+    {
+      "itemId": "sleeping_bag",
+      "scoreGroup": "Warmth",
+      "baseScore": 5,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "ColdWave",
+          "bonus": 5
+        },
+        {
+          "disaster": "LongTermSurvival",
+          "bonus": 3
+        }
+      ]
+    },
+    {
+      "itemId": "extra_clothes",
+      "scoreGroup": "Warmth",
+      "baseScore": 3,
+      "recommendedMin": 1,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Flood",
+          "bonus": 4
+        },
+        {
+          "disaster": "ColdWave",
+          "bonus": 3
+        }
+      ]
+    },
+    {
+      "itemId": "raincoat",
+      "scoreGroup": "Warmth",
+      "baseScore": 2,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Typhoon",
+          "bonus": 4
+        },
+        {
+          "disaster": "Flood",
+          "bonus": 4
+        }
+      ]
+    },
+    {
+      "itemId": "kf94_mask",
+      "scoreGroup": "Warmth",
+      "baseScore": 3,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Fire",
+          "bonus": 5
+        },
+        {
+          "disaster": "Wildfire",
+          "bonus": 5
+        }
+      ]
+    },
+    {
+      "itemId": "gloves",
+      "scoreGroup": "Warmth",
+      "baseScore": 1,
+      "recommendedMin": 0,
+      "recommendedMax": 1,
+      "essential": false,
+      "requiredItemIds": [],
+      "disasterBonuses": [
+        {
+          "disaster": "Earthquake",
+          "bonus": 2
+        },
+        {
+          "disaster": "ColdWave",
+          "bonus": 1
+        }
+      ]
+    }
+  ],
+  "weightEfficiencyRules": [
+    {
+      "maxRatio": 0.75,
+      "score": 5
+    },
+    {
+      "maxRatio": 0.9,
+      "score": 4
+    },
+    {
+      "maxRatio": 1.0,
+      "score": 3
+    },
+    {
+      "maxRatio": 1.15,
+      "score": 1
+    },
+    {
+      "maxRatio": 999.0,
+      "score": 0
+    }
+  ],
+  "trapPenaltyRule": {
+    "penaltyPerItem": 2,
+    "heavyItemWeightThreshold": 1.5,
+    "heavyItemAdditionalPenalty": 1,
+    "maxPenalty": 15
+  },
+  "gradeRules": [
+    {
+      "minScore": 90,
+      "grade": "S"
+    },
+    {
+      "minScore": 80,
+      "grade": "A"
+    },
+    {
+      "minScore": 70,
+      "grade": "B"
+    },
+    {
+      "minScore": 60,
+      "grade": "C"
+    },
+    {
+      "minScore": 0,
+      "grade": "D"
+    }
+  ]
+}
