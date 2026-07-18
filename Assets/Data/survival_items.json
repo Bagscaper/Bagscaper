@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 1,
   "description": "생존가방 싸기 게임용 전체 아이템 목록",
   "items": [
     {
@@ -21,16 +21,15 @@
       ]
     },
     {
-      "itemId": "water_filter",
-      "itemName": "정수 필터",
-      "category": "Water",
-      "categoryLabel": "식수",
-      "weight": 0.3,
+      "itemId": "protein_bar",
+      "itemName": "단백질바",
+      "category": "Food",
+      "categoryLabel": "식량",
+      "weight": 0.2,
       "importance": 5,
       "duplicateGroup": null,
       "usageContexts": [
-        "Flood",
-        "Mountain"
+        "All"
       ],
       "isTrap": false,
       "allowedSpawnAreas": [
@@ -41,8 +40,8 @@
       ]
     },
     {
-      "itemId": "energy_bar",
-      "itemName": "에너지바",
+      "itemId": "chocolate",
+      "itemName": "초콜릿",
       "category": "Food",
       "categoryLabel": "식량",
       "weight": 0.2,
@@ -98,50 +97,12 @@
       ]
     },
     {
-      "itemId": "first_aid_kit",
-      "itemName": "구급상자",
+      "itemId": "ad_kit",
+      "itemName": "AD 키트(구급상자+상비약+붕대)",
       "category": "Medical",
       "categoryLabel": "응급",
-      "weight": 1.0,
+      "weight": 1.3,
       "importance": 5,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "All"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
-      "itemId": "medicine",
-      "itemName": "상비약",
-      "category": "Medical",
-      "categoryLabel": "응급",
-      "weight": 0.2,
-      "importance": 5,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "All"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
-      "itemId": "bandage",
-      "itemName": "붕대",
-      "category": "Medical",
-      "categoryLabel": "응급",
-      "weight": 0.1,
-      "importance": 4,
       "duplicateGroup": null,
       "usageContexts": [
         "All"
@@ -212,64 +173,6 @@
       ]
     },
     {
-      "itemId": "whistle",
-      "itemName": "호루라기",
-      "category": "Rescue",
-      "categoryLabel": "구조",
-      "weight": 0.05,
-      "importance": 5,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "All"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
-      "itemId": "multi_tool",
-      "itemName": "멀티툴",
-      "category": "Survival",
-      "categoryLabel": "생존",
-      "weight": 0.3,
-      "importance": 4,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "All"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
-      "itemId": "lighter",
-      "itemName": "라이터",
-      "category": "Survival",
-      "categoryLabel": "생존",
-      "weight": 0.1,
-      "importance": 3,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "Mountain",
-        "ColdWave"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
       "itemId": "blanket",
       "itemName": "담요",
       "category": "Warmth",
@@ -321,98 +224,20 @@
       ]
     },
     {
-      "itemId": "raincoat",
-      "itemName": "우비",
+      "itemId": "shoes",
+      "itemName": "신발",
       "category": "Clothing",
       "categoryLabel": "의류",
-      "weight": 0.3,
-      "importance": 4,
+      "weight": 0.8,
+      "importance": 3,
       "duplicateGroup": null,
       "usageContexts": [
-        "Typhoon",
-        "Flood"
+        "All"
       ],
       "isTrap": false,
       "allowedSpawnAreas": [
         "sofa",
         "floor"
-      ]
-    },
-    {
-      "itemId": "cash",
-      "itemName": "현금",
-      "category": "Other",
-      "categoryLabel": "기타",
-      "weight": 0.0,
-      "importance": 3,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "PostEvacuation"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
-      "itemId": "id_card",
-      "itemName": "신분증",
-      "category": "Other",
-      "categoryLabel": "기타",
-      "weight": 0.0,
-      "importance": 4,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "PostEvacuation"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
-      "itemId": "kf94_mask",
-      "itemName": "KF94 마스크",
-      "category": "Protection",
-      "categoryLabel": "보호",
-      "weight": 0.05,
-      "importance": 5,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "Fire",
-        "Wildfire"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
-      "itemId": "gloves",
-      "itemName": "장갑",
-      "category": "Protection",
-      "categoryLabel": "보호",
-      "weight": 0.1,
-      "importance": 3,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "RescueActivity"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "bookshelf_1",
-        "bookshelf_2",
-        "table_1",
-        "table_2"
       ]
     },
     {
@@ -490,24 +315,6 @@
       ]
     },
     {
-      "itemId": "monitor",
-      "itemName": "모니터",
-      "category": "Electronics",
-      "categoryLabel": "전자기기",
-      "weight": 4.0,
-      "importance": 0,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "None"
-      ],
-      "isTrap": true,
-      "allowedSpawnAreas": [
-        "table_1",
-        "table_2",
-        "floor"
-      ]
-    },
-    {
       "itemId": "stuffed_toy",
       "itemName": "인형",
       "category": "Hobby",
@@ -523,23 +330,6 @@
         "bookshelf_1",
         "bookshelf_2",
         "sofa"
-      ]
-    },
-    {
-      "itemId": "guitar",
-      "itemName": "기타",
-      "category": "Hobby",
-      "categoryLabel": "취미",
-      "weight": 3.0,
-      "importance": 0,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "None"
-      ],
-      "isTrap": true,
-      "allowedSpawnAreas": [
-        "sofa",
-        "floor"
       ]
     },
     {
@@ -593,38 +383,6 @@
       "allowedSpawnAreas": [
         "table_1",
         "table_2",
-        "floor"
-      ]
-    },
-    {
-      "itemId": "vacuum_cleaner",
-      "itemName": "청소기",
-      "category": "Appliance",
-      "categoryLabel": "가전제품",
-      "weight": 4.0,
-      "importance": 0,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "None"
-      ],
-      "isTrap": true,
-      "allowedSpawnAreas": [
-        "floor"
-      ]
-    },
-    {
-      "itemId": "large_mirror",
-      "itemName": "대형 거울",
-      "category": "Household",
-      "categoryLabel": "생활용품",
-      "weight": 5.0,
-      "importance": 0,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "None"
-      ],
-      "isTrap": true,
-      "allowedSpawnAreas": [
         "floor"
       ]
     },
@@ -736,24 +494,6 @@
         "bookshelf_2",
         "table_1",
         "table_2"
-      ]
-    },
-    {
-      "itemId": "vr_headset",
-      "itemName": "VR 기기",
-      "category": "Electronics",
-      "categoryLabel": "전자기기",
-      "weight": 0.8,
-      "importance": 0,
-      "duplicateGroup": "entertainment",
-      "usageContexts": [
-        "None"
-      ],
-      "isTrap": true,
-      "allowedSpawnAreas": [
-        "table_1",
-        "table_2",
-        "sofa"
       ]
     },
     {

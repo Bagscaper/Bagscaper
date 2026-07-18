@@ -3,48 +3,89 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 게임 시작, 타이머, 가방 아이템, 행동 로그, 최종 점수를 관리합니다.
-/// 씬의 GameManager 오브젝트에 붙이세요.
+/// 게임의 로컬 상태와 서버에서 전달받은 세션 정보를 관리합니다.
+///
+/// API 통신 코드는 GameApiClient에 있습니다. GameManager는 API를 직접 호출하지 않고
+/// 아래 이벤트만 발생시킵니다. GameApiClient가 이 이벤트들을 구독해서 실제 HTTP 요청을
+/// 보내고, 응답이 오면 이 클래스의 Apply* 메서드를 다시 호출해 상태를 반영합니다.
+///
+/// - 게임 시작 요청: GameStartRequested → 성공 시 ApplyStartSession(...)
+/// - 가방 로그 요청: BagLogRequested → 성공 시 ApplyServerBagState(...)
+/// - 최종 결과 요청: GameResultRequested → 성공 시 ApplyFinalResult(...)
 /// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    // API 명세서 2. 열거형 정의와 반드시 일치해야 합니다.
+    private static readonly string[] ValidGenders =
+        { "male", "female", "other" };
+
+    private static readonly string[] ValidAgeGroups =
+        { "child", "teen", "age_20_30", "age_40_50", "age_60_plus" };
+
+    private static readonly string[] ValidDisasters =
+        {
+            "fire", "flood", "typhoon", "wildfire",
+            "earthquake", "heatwave", "coldwave"
+        };
+
     [Header("게임 설정")]
-    [SerializeField] private string scenarioId = "Earthquake";
+    [SerializeField] private string disaster = "earthquake";
     [SerializeField] private float gameDurationSeconds = 60f;
     [SerializeField] private bool startOnPlay;
 
     [Header("플레이어 정보")]
-    [SerializeField] private string playerGender = "Female";
-    [SerializeField] private int playerAge = 20;
-
-    [Tooltip("성별·나이 규칙으로 계산된 최종 가방 허용 무게를 넣으세요.")]
-    [SerializeField] private float maxWeight = 8f;
+    [SerializeField] private string playerGender = "female";
+    [SerializeField] private string playerAgeGroup = "age_20_30";
 
     [Header("데이터")]
     [SerializeField] private SurvivalDataLoader dataLoader;
 
     public bool IsGameRunning { get; private set; }
     public bool IsGameEnded { get; private set; }
+    public bool HasSession => !string.IsNullOrWhiteSpace(SessionId);
 
     public float RemainingTime { get; private set; }
     public float ElapsedTime { get; private set; }
-    public float CurrentWeight { get; private set; }
 
-    public SurvivalScoreResult LastScoreResult { get; private set; }
-    public SurvivalGameResult LastGameResult { get; private set; }
+    // /game/start 응답으로 저장할 값
+    public string SessionId { get; private set; }
+    public int ReferenceBmrKcalDay { get; private set; }
+    public int RequiredWater72hMl { get; private set; }
+    public float MaxCarryWeightKg { get; private set; }
+    public string SessionExpiresAt { get; private set; }
 
-    public event Action<SurvivalGameResult> GameEnded;
+    // 현재 가방 상태 (서버 기준으로 동기화됨)
+    public int CurrentItemCount { get; private set; }
+    public float CurrentWeightKg { get; private set; }
+
+    // /game/result 응답으로 저장할 값
+    public string SurvivalType { get; private set; }
+    public string EvaluationNarrative { get; private set; }
+    public int SurvivalTimeHours { get; private set; }
+    public bool HasFinalResult { get; private set; }
+
+    public event Action GameStarted;
+    public event Action BagStateChanged;
+    public event Action GameEnded;
+    public event Action<string> GameResultRequested;
+    public event Action FinalResultReceived;
+
+    // GameApiClient가 구독해서 실제 HTTP 요청을 보내는 이벤트들
+    public event Action<GameStartRequest> GameStartRequested;
+    public event Action<GameLogRequest> BagLogRequested;
 
     private readonly Dictionary<string, int> selectedItemQuantities =
         new Dictionary<string, int>();
 
-    private readonly List<GameActionLog> actionLogs =
-        new List<GameActionLog>();
+    private readonly List<LocalGameActionLog> actionLogs =
+        new List<LocalGameActionLog>();
 
     private readonly List<string> availableItemIds =
         new List<string>();
+
+    private LocalGameStateSnapshot lastLocalSnapshot;
 
     private void Awake()
     {
@@ -64,6 +105,8 @@ public class GameManager : MonoBehaviour
             dataLoader = SurvivalDataLoader.Instance;
         }
 
+        // API 연결 없이 에디터에서 바로 테스트하고 싶을 때만 켜세요.
+        // 실제 연동에서는 UI에서 RequestGameStart()를 호출해야 합니다.
         if (startOnPlay)
         {
             StartGame();
@@ -90,7 +133,125 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 게임을 새로 시작하고 이전 기록을 초기화합니다.
+    /// 사용자 선택값을 저장합니다.
+    /// API 명세에 맞는 문자열을 전달해야 합니다.
+    /// 예: female, age_20_30
+    /// </summary>
+    public void SetPlayerProfile(
+        string gender,
+        string ageGroup)
+    {
+        if (string.IsNullOrWhiteSpace(gender))
+        {
+            Debug.LogWarning(
+                "[GameManager] gender가 비어 있습니다."
+            );
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(ageGroup))
+        {
+            Debug.LogWarning(
+                "[GameManager] ageGroup이 비어 있습니다."
+            );
+            return;
+        }
+
+        string normalizedGender = gender.Trim().ToLowerInvariant();
+        string normalizedAgeGroup = ageGroup.Trim().ToLowerInvariant();
+
+        if (Array.IndexOf(ValidGenders, normalizedGender) < 0)
+        {
+            Debug.LogWarning(
+                $"[GameManager] gender 값이 API 명세서의 열거형과 다릅니다: {normalizedGender}"
+            );
+        }
+
+        if (Array.IndexOf(ValidAgeGroups, normalizedAgeGroup) < 0)
+        {
+            Debug.LogWarning(
+                $"[GameManager] ageGroup 값이 API 명세서의 열거형과 다릅니다: {normalizedAgeGroup}"
+            );
+        }
+
+        playerGender = normalizedGender;
+        playerAgeGroup = normalizedAgeGroup;
+    }
+
+    /// <summary>
+    /// 재난 종류를 저장합니다.
+    /// 예: earthquake, wildfire
+    /// </summary>
+    public void SetDisaster(string newDisaster)
+    {
+        if (string.IsNullOrWhiteSpace(newDisaster))
+        {
+            Debug.LogWarning(
+                "[GameManager] disaster가 비어 있습니다."
+            );
+            return;
+        }
+
+        string normalizedDisaster = newDisaster.Trim().ToLowerInvariant();
+
+        if (Array.IndexOf(ValidDisasters, normalizedDisaster) < 0)
+        {
+            Debug.LogWarning(
+                $"[GameManager] disaster 값이 API 명세서의 열거형과 다릅니다: {normalizedDisaster}"
+            );
+        }
+
+        disaster = normalizedDisaster;
+    }
+
+    /// <summary>
+    /// UI의 "게임 시작" 버튼에서 호출합니다.
+    /// 로컬에서 바로 시작하지 않고 /game/start 요청을 먼저 보냅니다.
+    /// GameApiClient가 GameStartRequested를 구독해 API를 호출하고,
+    /// 성공하면 ApplyStartSession(...)을 호출해 실제로 게임이 시작됩니다.
+    /// </summary>
+    public void RequestGameStart()
+    {
+        GameStartRequested?.Invoke(new GameStartRequest
+        {
+            gender = playerGender,
+            age_group = playerAgeGroup,
+            disaster = disaster
+        });
+    }
+
+    /// <summary>
+    /// /game/start 성공 콜백에서 호출합니다.
+    /// 서버가 발급한 세션 정보와 상한선 수치를 저장한 뒤 게임을 시작합니다.
+    /// </summary>
+    public void ApplyStartSession(
+        string sessionId,
+        int referenceBmrKcalDay,
+        int requiredWater72hMl,
+        float maxCarryWeightKg,
+        string expiresAt)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId))
+        {
+            Debug.LogError(
+                "[GameManager] 서버가 반환한 session_id가 비어 있습니다."
+            );
+            return;
+        }
+
+        SessionId = sessionId;
+        ReferenceBmrKcalDay = referenceBmrKcalDay;
+        RequiredWater72hMl = requiredWater72hMl;
+        MaxCarryWeightKg = Mathf.Max(0f, maxCarryWeightKg);
+        SessionExpiresAt = expiresAt;
+
+        StartGame();
+    }
+
+    /// <summary>
+    /// 게임 상태를 초기화하고 타이머를 시작합니다.
+    /// 실제 연동에서는 RequestGameStart() → ApplyStartSession(...) 경로로만 호출되어야 합니다.
+    /// (에디터 테스트(startOnPlay, TestLocalBagState)에서는 API 없이 직접 호출됩니다.)
     /// </summary>
     public void StartGame()
     {
@@ -105,47 +266,32 @@ public class GameManager : MonoBehaviour
 
         ElapsedTime = 0f;
         RemainingTime = gameDurationSeconds;
-        CurrentWeight = 0f;
 
-        LastScoreResult = null;
-        LastGameResult = null;
+        CurrentItemCount = 0;
+        CurrentWeightKg = 0f;
+
+        SurvivalType = string.Empty;
+        EvaluationNarrative = string.Empty;
+        SurvivalTimeHours = 0;
+        HasFinalResult = false;
+
+        lastLocalSnapshot = null;
 
         IsGameEnded = false;
         IsGameRunning = true;
 
-        Debug.Log("[GameManager] 게임 시작");
+        Debug.Log(
+            $"[GameManager] 게임 시작 | " +
+            $"session_id={SessionId} | " +
+            $"disaster={disaster}"
+        );
+
+        GameStarted?.Invoke();
+        BagStateChanged?.Invoke();
     }
 
     /// <summary>
-    /// 플레이어 정보 화면에서 호출합니다.
-    /// maxWeight는 성별·나이 규칙으로 계산한 값을 전달하세요.
-    /// </summary>
-    public void SetPlayerProfile(
-        string gender,
-        int age,
-        float calculatedMaxWeight)
-    {
-        playerGender = gender;
-        playerAge = age;
-        maxWeight = Mathf.Max(0f, calculatedMaxWeight);
-    }
-
-    public void SetScenario(string newScenarioId)
-    {
-        if (string.IsNullOrWhiteSpace(newScenarioId))
-        {
-            Debug.LogWarning(
-                "[GameManager] 시나리오 ID가 비어 있습니다."
-            );
-            return;
-        }
-
-        scenarioId = newScenarioId;
-    }
-
-    /// <summary>
-    /// 랜덤 스포너가 실제 생성한 아이템을 등록합니다.
-    /// 모든 아이템이 등장하는 게임이라면 호출하지 않아도 됩니다.
+    /// 랜덤 스포너가 실제로 생성한 아이템을 등록합니다.
     /// </summary>
     public void RegisterAvailableItem(string itemId)
     {
@@ -162,14 +308,22 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// 아이템을 가방에 넣었을 때 호출합니다.
-    /// 성공하면 true를 반환합니다.
+    /// 로컬 상태를 즉시(낙관적으로) 갱신하고, /game/log INSERT 요청을 발생시킵니다.
+    /// 서버 응답이 오면 ApplyServerBagState(...)가 실제 값으로 다시 동기화합니다.
     /// </summary>
-    public bool AddItemToBag(string itemId)
+    public bool AddItemToBag(
+        string itemId,
+        string itemInstanceId)
     {
-        if (!IsGameRunning)
+        if (!CanModifyBag())
         {
-            Debug.LogWarning(
-                "[GameManager] 게임 진행 중이 아니라 아이템을 추가할 수 없습니다."
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(itemInstanceId))
+        {
+            Debug.LogError(
+                "[GameManager] itemInstanceId가 비어 있습니다."
             );
             return false;
         }
@@ -188,12 +342,20 @@ public class GameManager : MonoBehaviour
 
         selectedItemQuantities[itemId]++;
 
-        RecalculateCurrentWeight();
+        RefreshLocalBagState();
 
-        AddActionLog(
-            "ADD",
+        AddLocalActionLog(
+            "INSERT",
             item,
             selectedItemQuantities[itemId]
+        );
+
+        BagStateChanged?.Invoke();
+
+        RequestBagLog(
+            "INSERT",
+            itemId,
+            itemInstanceId
         );
 
         return true;
@@ -201,14 +363,22 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// 아이템을 가방에서 뺐을 때 호출합니다.
-    /// 성공하면 true를 반환합니다.
+    /// 로컬 상태를 즉시(낙관적으로) 갱신하고, /game/log REMOVE 요청을 발생시킵니다.
+    /// 서버 응답이 오면 ApplyServerBagState(...)가 실제 값으로 다시 동기화합니다.
     /// </summary>
-    public bool RemoveItemFromBag(string itemId)
+    public bool RemoveItemFromBag(
+        string itemId,
+        string itemInstanceId)
     {
-        if (!IsGameRunning)
+        if (!CanModifyBag())
         {
-            Debug.LogWarning(
-                "[GameManager] 게임 진행 중이 아니라 아이템을 제거할 수 없습니다."
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(itemInstanceId))
+        {
+            Debug.LogError(
+                "[GameManager] itemInstanceId가 비어 있습니다."
             );
             return false;
         }
@@ -220,11 +390,9 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        int currentQuantity;
-
         if (!selectedItemQuantities.TryGetValue(
                 itemId,
-                out currentQuantity
+                out int currentQuantity
             ) ||
             currentQuantity <= 0)
         {
@@ -245,12 +413,20 @@ public class GameManager : MonoBehaviour
             selectedItemQuantities[itemId] = currentQuantity;
         }
 
-        RecalculateCurrentWeight();
+        RefreshLocalBagState();
 
-        AddActionLog(
+        AddLocalActionLog(
             "REMOVE",
             item,
             currentQuantity
+        );
+
+        BagStateChanged?.Invoke();
+
+        RequestBagLog(
+            "REMOVE",
+            itemId,
+            itemInstanceId
         );
 
         return true;
@@ -258,18 +434,50 @@ public class GameManager : MonoBehaviour
 
     public int GetSelectedQuantity(string itemId)
     {
-        int quantity;
-
         return selectedItemQuantities.TryGetValue(
             itemId,
-            out quantity
+            out int quantity
         )
             ? quantity
             : 0;
     }
 
     /// <summary>
+    /// /game/log 응답을 받은 뒤 호출합니다.
+    /// 서버가 내려준 아이템별 개수(items)로 selectedItemQuantities를 통째로 덮어써서
+    /// 로컬 상태를 서버 기준으로 동기화합니다. 무게/총 개수는 그 결과로 다시 계산합니다.
+    ///
+    /// applied=false는 에러가 아니라 "이미 있는 걸 또 넣거나 없는 걸 뺀 경우"이지만,
+    /// 이 경우에도 items는 서버 기준 값이므로 그대로 반영합니다.
+    /// </summary>
+    public void ApplyServerBagState(
+        bool applied,
+        int itemCount,
+        int currentWeightGrams)
+    {
+        if (!applied)
+        {
+            Debug.LogWarning(
+                "[GameManager] 서버에서 행동이 적용되지 않았습니다."
+            );
+        }
+
+        CurrentItemCount = Mathf.Max(
+            0,
+            itemCount
+        );
+
+        CurrentWeightKg = Mathf.Max(
+            0,
+            currentWeightGrams
+        ) / 1000f;
+
+        BagStateChanged?.Invoke();
+    }
+
+    /// <summary>
     /// 제한 시간 종료 또는 완료 버튼에서 호출합니다.
+    /// 점수는 Unity에서 계산하지 않고 서버 결과를 요청합니다.
     /// </summary>
     public void EndGame()
     {
@@ -278,130 +486,120 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (!EnsureDataLoader())
-        {
-            return;
-        }
-
         IsGameRunning = false;
         IsGameEnded = true;
 
-        RecalculateCurrentWeight();
-        CalculateFinalScore();
-
-        LastGameResult = BuildGameResult();
+        RefreshLocalBagState();
+        lastLocalSnapshot = BuildLocalSnapshot();
 
         Debug.Log(
-            "[GameManager] 게임 종료 결과\n" +
-            JsonUtility.ToJson(LastGameResult, true)
+            "[GameManager] 게임 종료 로컬 상태\n" +
+            JsonUtility.ToJson(lastLocalSnapshot, true)
         );
 
-        GameEnded?.Invoke(LastGameResult);
+        if (HasSession)
+        {
+            // GameApiClient가 이 이벤트를 구독해서 /game/result 요청을 보냅니다.
+            GameResultRequested?.Invoke(SessionId);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[GameManager] session_id가 없어 서버 결과를 요청할 수 없습니다."
+            );
+        }
+
+        GameEnded?.Invoke();
     }
 
-    public string GetLastGameResultJson()
+    /// <summary>
+    /// /game/result 성공 콜백에서 호출합니다.
+    /// </summary>
+    public void ApplyFinalResult(
+        string survivalType,
+        string evaluationNarrative,
+        int survivalTimeHours)
     {
-        return LastGameResult == null
+        SurvivalType = survivalType ?? string.Empty;
+        EvaluationNarrative =
+            evaluationNarrative ?? string.Empty;
+        SurvivalTimeHours = Mathf.Clamp(
+            survivalTimeHours,
+            0,
+            72
+        );
+        HasFinalResult = true;
+
+        Debug.Log(
+            "[GameManager] 서버 최종 결과\n" +
+            $"생존 유형: {SurvivalType}\n" +
+            $"예상 생존 시간: {SurvivalTimeHours}시간\n" +
+            $"평가: {EvaluationNarrative}"
+        );
+
+        FinalResultReceived?.Invoke();
+    }
+
+    /// <summary>
+    /// API 연결 전 로컬 상태 확인용 JSON입니다.
+    /// 공식 점수 결과가 아닙니다.
+    /// </summary>
+    public string GetLastLocalSnapshotJson()
+    {
+        return lastLocalSnapshot == null
             ? string.Empty
-            : JsonUtility.ToJson(LastGameResult, true);
+            : JsonUtility.ToJson(lastLocalSnapshot, true);
     }
 
-    private void CalculateFinalScore()
+    private bool CanModifyBag()
     {
-        SurvivalScoreInput input = new SurvivalScoreInput
+        if (!IsGameRunning)
         {
-            disaster = scenarioId,
-            maxWeight = maxWeight,
-            selectedItems = BuildScoreSelectedItems(),
-            availableItemIds =
-                new List<string>(availableItemIds)
-        };
-
-        LastScoreResult = SurvivalScoreCalculator.Evaluate(
-            input,
-            dataLoader.ItemDatabase,
-            dataLoader.ScoreRules
-        );
-    }
-
-    private List<ScoreSelectedItem> BuildScoreSelectedItems()
-    {
-        List<ScoreSelectedItem> result =
-            new List<ScoreSelectedItem>();
-
-        foreach (
-            KeyValuePair<string, int> selected
-            in selectedItemQuantities
-        )
-        {
-            result.Add(new ScoreSelectedItem
-            {
-                itemId = selected.Key,
-                quantity = selected.Value
-            });
+            Debug.LogWarning(
+                "[GameManager] 게임 진행 중이 아니라 가방을 변경할 수 없습니다."
+            );
+            return false;
         }
 
-        return result;
+        return EnsureDataLoader();
     }
 
-    private List<SelectedItemResult> BuildSelectedItemResults()
+    /// <summary>
+    /// /game/log 요청 이벤트를 발생시킵니다.
+    /// action_id는 여기서 한 번만 생성하며, 재시도 시에도 동일한 값을 유지해야 하므로
+    /// GameApiClient 쪽에서 재시도할 때는 이 메서드를 다시 호출하지 말고
+    /// 넘겨받은 GameLogRequest 객체를 그대로 재사용해야 합니다.
+    /// </summary>
+    private void RequestBagLog(
+        string action,
+        string itemId,
+        string itemInstanceId)
     {
-        List<SelectedItemResult> result =
-            new List<SelectedItemResult>();
-
-        foreach (
-            KeyValuePair<string, int> selected
-            in selectedItemQuantities
-        )
+        if (!HasSession)
         {
-            SurvivalItemData item =
-                dataLoader.GetItemById(selected.Key);
-
-            if (item == null)
-            {
-                continue;
-            }
-
-            result.Add(new SelectedItemResult
-            {
-                itemId = item.itemId,
-                itemName = item.itemName,
-                quantity = selected.Value,
-                unitWeight = RoundToTwoDecimals(item.weight),
-                totalWeight = RoundToTwoDecimals(
-                    item.weight * selected.Value
-                ),
-                isTrap = item.isTrap
-            });
+            Debug.LogWarning(
+                "[GameManager] session_id가 없어 /game/log를 요청할 수 없습니다."
+            );
+            return;
         }
 
-        return result;
-    }
-
-    private SurvivalGameResult BuildGameResult()
-    {
-        return new SurvivalGameResult
+        BagLogRequested?.Invoke(new GameLogRequest
         {
-            scenarioId = scenarioId,
-
-            playerGender = playerGender,
-            playerAge = playerAge,
-
-            elapsedTime = RoundToTwoDecimals(ElapsedTime),
-            totalWeight = RoundToTwoDecimals(CurrentWeight),
-            maxWeight = RoundToTwoDecimals(maxWeight),
-
-            selectedItems = BuildSelectedItemResults(),
-            actionLogs = new List<GameActionLog>(actionLogs),
-            availableItemIds =
-                new List<string>(availableItemIds),
-
-            scoreResult = LastScoreResult
-        };
+            session_id = SessionId,
+            action_id = Guid.NewGuid().ToString(),
+            action = action,
+            item_instance_id = itemInstanceId,
+            item_id = itemId,
+            occurred_at =
+                DateTime.UtcNow.ToString(
+                    "yyyy-MM-ddTHH:mm:ssZ"
+                )
+        });
     }
 
-    private void RecalculateCurrentWeight()
+    private void RefreshLocalBagState()
     {
+        int totalCount = 0;
         float totalWeight = 0f;
 
         foreach (
@@ -417,26 +615,81 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
+            totalCount += selected.Value;
             totalWeight += item.weight * selected.Value;
         }
 
-        CurrentWeight = RoundToTwoDecimals(totalWeight);
+        CurrentItemCount = totalCount;
+        CurrentWeightKg = RoundToTwoDecimals(totalWeight);
     }
 
-    private void AddActionLog(
+    private void AddLocalActionLog(
         string action,
         SurvivalItemData item,
         int quantityAfterAction)
     {
-        actionLogs.Add(new GameActionLog
+        actionLogs.Add(new LocalGameActionLog
         {
-            elapsedTime = RoundToTwoDecimals(ElapsedTime),
+            elapsed_time = RoundToTwoDecimals(ElapsedTime),
             action = action,
-            itemId = item.itemId,
-            itemName = item.itemName,
-            quantityAfterAction = quantityAfterAction,
-            currentWeight = RoundToTwoDecimals(CurrentWeight)
+            item_id = item.itemId,
+            item_name = item.itemName,
+            quantity_after_action = quantityAfterAction,
+            current_weight_kg =
+                RoundToTwoDecimals(CurrentWeightKg)
         });
+    }
+
+    private LocalGameStateSnapshot BuildLocalSnapshot()
+    {
+        List<LocalSelectedItem> selectedItems =
+            new List<LocalSelectedItem>();
+
+        foreach (
+            KeyValuePair<string, int> selected
+            in selectedItemQuantities
+        )
+        {
+            SurvivalItemData item =
+                dataLoader.GetItemById(selected.Key);
+
+            if (item == null)
+            {
+                continue;
+            }
+
+            selectedItems.Add(new LocalSelectedItem
+            {
+                item_id = item.itemId,
+                item_name = item.itemName,
+                quantity = selected.Value,
+                unit_weight_kg =
+                    RoundToTwoDecimals(item.weight),
+                total_weight_kg =
+                    RoundToTwoDecimals(
+                        item.weight * selected.Value
+                    )
+            });
+        }
+
+        return new LocalGameStateSnapshot
+        {
+            session_id = SessionId,
+            gender = playerGender,
+            age_group = playerAgeGroup,
+            disaster = disaster,
+            elapsed_time = RoundToTwoDecimals(ElapsedTime),
+            current_item_count = CurrentItemCount,
+            current_weight_kg =
+                RoundToTwoDecimals(CurrentWeightKg),
+            max_carry_weight_kg =
+                RoundToTwoDecimals(MaxCarryWeightKg),
+            selected_items = selectedItems,
+            action_logs =
+                new List<LocalGameActionLog>(actionLogs),
+            available_item_ids =
+                new List<string>(availableItemIds)
+        };
     }
 
     private SurvivalItemData GetItemOrLogError(string itemId)
@@ -452,8 +705,8 @@ public class GameManager : MonoBehaviour
         if (item == null)
         {
             Debug.LogError(
-                $"[GameManager] JSON에서 itemId를 찾을 수 없습니다: " +
-                $"{itemId}"
+                "[GameManager] survival_items.json에서 " +
+                $"itemId를 찾을 수 없습니다: {itemId}"
             );
         }
 
@@ -478,7 +731,7 @@ public class GameManager : MonoBehaviour
         if (!dataLoader.IsLoaded)
         {
             Debug.LogError(
-                "[GameManager] JSON 데이터가 로드되지 않았습니다."
+                "[GameManager] 아이템 JSON 데이터가 로드되지 않았습니다."
             );
             return false;
         }
@@ -493,30 +746,85 @@ public class GameManager : MonoBehaviour
 
 #if UNITY_EDITOR
 
-    [ContextMenu("점수 시스템 테스트")]
-    private void TestScoreSystem()
+    [ContextMenu("로컬 가방 상태 테스트 (API 없이)")]
+    private void TestLocalBagState()
     {
         if (!EnsureDataLoader())
         {
             return;
         }
 
-        selectedItemQuantities.Clear();
-        actionLogs.Clear();
-        availableItemIds.Clear();
+        SessionId = "editor-test-session";
+        MaxCarryWeightKg = 8f;
 
-        ElapsedTime = 20f;
-        IsGameRunning = true;
-        IsGameEnded = false;
+        StartGame();
 
-        AddItemToBag("water");
-        AddItemToBag("energy_bar");
-        AddItemToBag("first_aid_kit");
-        AddItemToBag("flashlight");
-        AddItemToBag("game_console");
+        AddItemToBag(
+            "water",
+            Guid.NewGuid().ToString()
+        );
+
+        AddItemToBag(
+            "protein_bar",
+            Guid.NewGuid().ToString()
+        );
+
+        AddItemToBag(
+            "ad_kit",
+            Guid.NewGuid().ToString()
+        );
+
+        AddItemToBag(
+            "flashlight",
+            Guid.NewGuid().ToString()
+        );
+
+        AddItemToBag(
+            "game_console",
+            Guid.NewGuid().ToString()
+        );
 
         EndGame();
     }
 
 #endif
+
+    [Serializable]
+    private class LocalGameStateSnapshot
+    {
+        public string session_id;
+        public string gender;
+        public string age_group;
+        public string disaster;
+
+        public float elapsed_time;
+        public int current_item_count;
+        public float current_weight_kg;
+        public float max_carry_weight_kg;
+
+        public List<LocalSelectedItem> selected_items;
+        public List<LocalGameActionLog> action_logs;
+        public List<string> available_item_ids;
+    }
+
+    [Serializable]
+    private class LocalSelectedItem
+    {
+        public string item_id;
+        public string item_name;
+        public int quantity;
+        public float unit_weight_kg;
+        public float total_weight_kg;
+    }
+
+    [Serializable]
+    private class LocalGameActionLog
+    {
+        public float elapsed_time;
+        public string action;
+        public string item_id;
+        public string item_name;
+        public int quantity_after_action;
+        public float current_weight_kg;
+    }
 }

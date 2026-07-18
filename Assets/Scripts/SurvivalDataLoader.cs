@@ -2,27 +2,23 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 아이템 JSON과 점수 규칙 JSON을 읽어 C# 데이터로 변환합니다.
-/// 이 스크립트만 빈 GameObject에 붙이면 됩니다.
+/// survival_items.json을 로드하고 itemId로 아이템을 조회할 수 있게 해주는 로더입니다.
+///
+/// 씬의 빈 오브젝트에 붙인 뒤 Inspector의 Survival Items Json에
+/// survival_items.json 파일을 연결하세요.
 /// </summary>
 public class SurvivalDataLoader : MonoBehaviour
 {
     public static SurvivalDataLoader Instance { get; private set; }
 
-    [Header("JSON 파일")]
-    [SerializeField] private TextAsset itemDatabaseJson;
-    [SerializeField] private TextAsset scoreRulesJson;
+    [Header("아이템 데이터")]
+    [SerializeField] private TextAsset survivalItemsJson;
 
+    public bool IsLoaded { get; private set; }
     public SurvivalItemDatabase ItemDatabase { get; private set; }
-    public SurvivalScoreRuleDatabase ScoreRules { get; private set; }
 
-    public bool IsLoaded =>
-        ItemDatabase != null &&
-        ItemDatabase.items != null &&
-        ScoreRules != null &&
-        ScoreRules.itemRules != null;
-
-    private Dictionary<string, SurvivalItemData> itemMap;
+    private readonly Dictionary<string, SurvivalItemData> itemById =
+        new Dictionary<string, SurvivalItemData>();
 
     private void Awake()
     {
@@ -36,125 +32,123 @@ public class SurvivalDataLoader : MonoBehaviour
         LoadData();
     }
 
+    /// <summary>
+    /// Inspector에 연결된 survival_items.json을 다시 로드합니다.
+    /// </summary>
     public void LoadData()
     {
-        if (itemDatabaseJson == null)
+        IsLoaded = false;
+        ItemDatabase = null;
+        itemById.Clear();
+
+        if (survivalItemsJson == null)
         {
             Debug.LogError(
-                "[SurvivalDataLoader] survival_items.json이 연결되지 않았습니다."
+                "[SurvivalDataLoader] Survival Items Json이 연결되지 않았습니다."
             );
             return;
         }
 
-        if (scoreRulesJson == null)
+        try
+        {
+            ItemDatabase =
+                JsonUtility.FromJson<SurvivalItemDatabase>(
+                    survivalItemsJson.text
+                );
+        }
+        catch (System.Exception exception)
         {
             Debug.LogError(
-                "[SurvivalDataLoader] survival_score_rules.json이 연결되지 않았습니다."
+                "[SurvivalDataLoader] JSON 파싱 중 오류가 발생했습니다.\n" +
+                exception
             );
             return;
         }
 
-        ItemDatabase = JsonUtility.FromJson<SurvivalItemDatabase>(
-            itemDatabaseJson.text
-        );
-
-        ScoreRules = JsonUtility.FromJson<SurvivalScoreRuleDatabase>(
-            scoreRulesJson.text
-        );
-
-        if (ItemDatabase == null || ItemDatabase.items == null)
+        if (ItemDatabase == null)
         {
             Debug.LogError(
-                "[SurvivalDataLoader] 아이템 JSON을 읽지 못했습니다."
+                "[SurvivalDataLoader] JSON 파싱 결과가 null입니다."
             );
             return;
         }
 
-        if (ScoreRules == null || ScoreRules.itemRules == null)
+        if (ItemDatabase.items == null)
         {
             Debug.LogError(
-                "[SurvivalDataLoader] 점수 규칙 JSON을 읽지 못했습니다."
+                "[SurvivalDataLoader] JSON에 items 배열이 없습니다."
             );
             return;
         }
 
-        BuildItemMap();
-        ValidateData();
+        foreach (SurvivalItemData item in ItemDatabase.items)
+        {
+            if (item == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(item.itemId))
+            {
+                Debug.LogWarning(
+                    "[SurvivalDataLoader] itemId가 비어 있는 아이템을 건너뜁니다."
+                );
+                continue;
+            }
+
+            if (itemById.ContainsKey(item.itemId))
+            {
+                Debug.LogWarning(
+                    $"[SurvivalDataLoader] 중복 itemId를 건너뜁니다: {item.itemId}"
+                );
+                continue;
+            }
+
+            itemById.Add(item.itemId, item);
+        }
+
+        IsLoaded = true;
 
         Debug.Log(
-            $"[SurvivalDataLoader] 아이템 {ItemDatabase.items.Count}개, " +
-            $"점수 규칙 {ScoreRules.itemRules.Count}개 로드 완료"
+            $"[SurvivalDataLoader] 아이템 {itemById.Count}개 로드 완료"
         );
     }
 
+    /// <summary>
+    /// itemId와 일치하는 아이템을 반환합니다.
+    /// 찾지 못하면 null을 반환합니다.
+    /// </summary>
     public SurvivalItemData GetItemById(string itemId)
     {
-        if (string.IsNullOrWhiteSpace(itemId) || itemMap == null)
+        if (string.IsNullOrWhiteSpace(itemId))
         {
             return null;
         }
 
-        SurvivalItemData item;
-        return itemMap.TryGetValue(itemId, out item) ? item : null;
+        return itemById.TryGetValue(
+            itemId,
+            out SurvivalItemData item
+        )
+            ? item
+            : null;
     }
 
+    /// <summary>
+    /// 특정 itemId가 현재 로드된 데이터에 존재하는지 확인합니다.
+    /// </summary>
     public bool ContainsItem(string itemId)
     {
-        return GetItemById(itemId) != null;
+        return !string.IsNullOrWhiteSpace(itemId) &&
+               itemById.ContainsKey(itemId);
     }
 
-    private void BuildItemMap()
+#if UNITY_EDITOR
+
+    [ContextMenu("Reload Survival Item Data")]
+    private void ReloadFromContextMenu()
     {
-        itemMap = new Dictionary<string, SurvivalItemData>();
-
-        foreach (SurvivalItemData item in ItemDatabase.items)
-        {
-            if (item == null || string.IsNullOrWhiteSpace(item.itemId))
-            {
-                continue;
-            }
-
-            if (itemMap.ContainsKey(item.itemId))
-            {
-                Debug.LogWarning(
-                    $"[SurvivalDataLoader] 중복 itemId: {item.itemId}"
-                );
-                continue;
-            }
-
-            itemMap.Add(item.itemId, item);
-        }
+        LoadData();
     }
 
-    private void ValidateData()
-    {
-        int scoreGroupTotal = 0;
-
-        if (ScoreRules.scoreGroups != null)
-        {
-            foreach (ScoreGroupRule group in ScoreRules.scoreGroups)
-            {
-                scoreGroupTotal += group.maxScore;
-            }
-        }
-
-        if (scoreGroupTotal != 100)
-        {
-            Debug.LogWarning(
-                $"[SurvivalDataLoader] 점수 그룹의 합이 100점이 아닙니다: " +
-                $"{scoreGroupTotal}"
-            );
-        }
-
-        foreach (ItemScoreRule rule in ScoreRules.itemRules)
-        {
-            if (!ContainsItem(rule.itemId))
-            {
-                Debug.LogWarning(
-                    $"[SurvivalDataLoader] 아이템 JSON에 없는 점수 규칙 ID: " +
-                    $"{rule.itemId}"
-                );
-            }
-        }
-    }
+#endif
 }
