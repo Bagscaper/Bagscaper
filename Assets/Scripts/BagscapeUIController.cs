@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class BagscapeUIController : MonoBehaviour
 {
+    private const int LocalResultCardCount = 2;
+
     [Header("초기 안내")]
     [SerializeField] private GameObject initialPanel;
     [SerializeField] private GameObject[] introPages;
@@ -13,23 +15,18 @@ public class BagscapeUIController : MonoBehaviour
     [SerializeField] private TMP_Text leftTimeText;
     [SerializeField] private Image volumeImage;
     [SerializeField] private TMP_Text volumePercentText;
-    [SerializeField] private TMP_Text weightText;
 
     [Header("결과")]
     [SerializeField] private GameObject gameResultRoot;
-    [SerializeField] private GameObject resultLoadingRoot;
     [SerializeField] private GameObject[] successCards;
     [SerializeField] private GameObject[] failCards;
 
-    [Header("성공 카드 텍스트")]
-    [SerializeField] private TMP_Text successCard1Text;
+    [Header("성공 결과 - 1번 카드는 이미지 전용")]
     [SerializeField] private TMP_Text successRuleText;
-    [SerializeField] private TMP_Text successAiCommentText;
 
-    [Header("실패 카드 텍스트")]
+    [Header("실패 결과")]
     [SerializeField] private TMP_Text failCard1Text;
     [SerializeField] private TMP_Text failRuleText;
-    [SerializeField] private TMP_Text failAiCommentText;
 
     public int IntroPageCount => introPages != null ? introPages.Length : 0;
 
@@ -43,11 +40,10 @@ public class BagscapeUIController : MonoBehaviour
         SetActive(initialPanel, false);
         SetActive(inGameRoot, false);
         SetActive(gameResultRoot, false);
-        SetActive(resultLoadingRoot, false);
         SetAll(introPages, false);
         SetAll(successCards, false);
         SetAll(failCards, false);
-        UpdateHud(0f, 0f, 0f);
+        UpdateHud(0f, 0, 0);
     }
 
     public void ShowIntroPage(int index)
@@ -55,7 +51,6 @@ public class BagscapeUIController : MonoBehaviour
         SetActive(initialPanel, true);
         SetActive(inGameRoot, false);
         SetActive(gameResultRoot, false);
-        SetActive(resultLoadingRoot, false);
 
         if (introPages == null)
         {
@@ -74,12 +69,14 @@ public class BagscapeUIController : MonoBehaviour
         SetAll(introPages, false);
         SetActive(inGameRoot, true);
         SetActive(gameResultRoot, false);
-        SetActive(resultLoadingRoot, false);
         SetAll(successCards, false);
         SetAll(failCards, false);
     }
 
-    public void UpdateHud(float remainingSeconds, float currentWeight, float maxWeight)
+    public void UpdateHud(
+        float remainingSeconds,
+        int currentWeightGrams,
+        int maxWeightGrams)
     {
         if (leftTimeText != null)
         {
@@ -89,7 +86,9 @@ public class BagscapeUIController : MonoBehaviour
             leftTimeText.text = $"{minutes:00}:{seconds:00}";
         }
 
-        float ratio = maxWeight > 0f ? currentWeight / maxWeight : 0f;
+        float ratio = maxWeightGrams > 0
+            ? (float)currentWeightGrams / maxWeightGrams
+            : 0f;
 
         if (volumeImage != null)
         {
@@ -100,46 +99,17 @@ public class BagscapeUIController : MonoBehaviour
         {
             volumePercentText.text = $"{Mathf.RoundToInt(ratio * 100f)}%";
         }
-
-        if (weightText != null)
-        {
-            weightText.text = $"{currentWeight:0.0} / {maxWeight:0.0}kg";
-        }
     }
 
-    public void ShowWaitingForResult()
+    public void BeginResult(bool success, string ruleText)
     {
         SetActive(initialPanel, false);
         SetActive(inGameRoot, false);
         SetActive(gameResultRoot, true);
-        SetActive(resultLoadingRoot, true);
-        SetAll(successCards, false);
-        SetAll(failCards, false);
-    }
-
-    public void BeginResult(
-        bool success,
-        string ruleText,
-        string aiComment,
-        int survivalTimeHours)
-    {
-        SetActive(initialPanel, false);
-        SetActive(inGameRoot, false);
-        SetActive(gameResultRoot, true);
-        SetActive(resultLoadingRoot, false);
-
-        if (successCard1Text != null)
-        {
-            successCard1Text.text = survivalTimeHours > 0
-                ? $"예상 생존 시간\n{survivalTimeHours}시간"
-                : "생존 준비 성공";
-        }
 
         if (failCard1Text != null)
         {
-            failCard1Text.text = survivalTimeHours > 0
-                ? $"예상 생존 시간\n{survivalTimeHours}시간"
-                : "생존 준비 실패";
+            failCard1Text.text = "생존 준비 실패";
         }
 
         if (successRuleText != null)
@@ -152,17 +122,16 @@ public class BagscapeUIController : MonoBehaviour
             failRuleText.text = ruleText;
         }
 
-        if (successAiCommentText != null)
-        {
-            successAiCommentText.text = aiComment;
-        }
-
-        if (failAiCommentText != null)
-        {
-            failAiCommentText.text = aiComment;
-        }
-
         ShowResultCard(success, 0);
+    }
+
+    public int GetResultCardCount(bool success)
+    {
+        GameObject[] targetCards = success ? successCards : failCards;
+        int configuredCount = targetCards != null ? targetCards.Length : 0;
+
+        // 기존 3번 카드가 배열에 남아 있어도 표시하지 않습니다.
+        return Mathf.Min(configuredCount, LocalResultCardCount);
     }
 
     public void ShowResultCard(bool success, int index)
@@ -171,7 +140,9 @@ public class BagscapeUIController : MonoBehaviour
         SetAll(failCards, false);
 
         GameObject[] targetCards = success ? successCards : failCards;
-        if (targetCards == null || index < 0 || index >= targetCards.Length)
+        int cardCount = GetResultCardCount(success);
+
+        if (targetCards == null || index < 0 || index >= cardCount)
         {
             return;
         }

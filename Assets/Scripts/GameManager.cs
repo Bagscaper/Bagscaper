@@ -5,15 +5,15 @@ using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
+    public const int MaxItemCount = 16;
+
     public static GameManager Instance { get; private set; }
 
     public enum GameFlowState
     {
         None,
         Intro,
-        WaitingForStart,
         Playing,
-        WaitingForResult,
         Result,
         Finished
     }
@@ -49,14 +49,11 @@ public class GameManager : MonoBehaviour
 
     [Header("게임 설정")]
     [SerializeField] private string scenarioId = "Earthquake";
-    [SerializeField, Min(1f)] private float gameDurationSeconds = 60f;
+    [SerializeField, Min(1f)] private float gameDurationSeconds = 100f;
     [SerializeField] private bool startOnPlay = true;
-    [SerializeField] private bool useBackendApi = true;
 
-    [Header("플레이어")]
-    [SerializeField] private string playerGender = "Female";
-    [SerializeField] private string playerAgeGroup = "20s";
-    [SerializeField, Min(0f)] private float maxWeight = 8f;
+    [Header("가방 설정")]
+    [SerializeField, Min(0)] private int maxWeightGrams = 8000;
 
     [Header("핵심 참조")]
     [SerializeField] private SurvivalDataLoader dataLoader;
@@ -70,7 +67,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private LayerMask grabbableLayers;
 
     [Header("랜덤 아이템 생성")]
-    [SerializeField, Min(1)] private int spawnCount = 15;
+    [SerializeField, Range(1, MaxItemCount)] private int spawnCount = MaxItemCount;
     [SerializeField] private bool uniqueItemIds = true;
     [SerializeField] private bool randomYaw = true;
     [SerializeField] private bool useFixedSeed;
@@ -87,16 +84,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private UnityEvent onGameplayEnded;
     [SerializeField] private UnityEvent onResultFinished;
 
+    [Tooltip("현재 아이템을 넣으면 최대 무게를 넘을 때 실행됩니다. 경고음이나 UI 애니메이션을 연결할 수 있습니다.")]
+    [SerializeField] private UnityEvent onBagWeightRejected;
+
     public GameFlowState CurrentState { get; private set; }
     public float RemainingTime { get; private set; }
-    public float CurrentWeight { get; private set; }
-    public float MaxWeight => maxWeight;
+    public int CurrentWeightGrams { get; private set; }
+    public int MaxWeightGrams => maxWeightGrams;
     public bool HasHeldItem => heldItem != null;
     public RuleBasedResult LastRuleResult { get; private set; }
 
-    public event Action<GameStartRequest> GameStartRequested;
-    public event Action<GameLogRequest> BagLogRequested;
-    public event Action<string> GameResultRequested;
 
     private readonly Dictionary<string, int> selectedItemQuantities =
         new Dictionary<string, int>();
@@ -112,7 +109,6 @@ public class GameManager : MonoBehaviour
     private int resultCardIndex;
     private bool currentResultSuccess;
     private float elapsedTime;
-    private string sessionId;
 
     private void Awake()
     {
@@ -186,86 +182,48 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentState != GameFlowState.Intro)
         {
+            Debug.LogWarning(
+                $"[GameManager] 인트로 진행 입력을 무시했습니다. 현재 상태: {CurrentState}"
+            );
             return;
         }
 
-        introIndex++;
+        int pageCount = uiController != null ? uiController.IntroPageCount : 0;
 
-        if (introIndex >= uiController.IntroPageCount)
+        // 현재 보이는 페이지가 마지막 페이지라면 다음 트리거에서 바로 게임을 시작합니다.
+        if (pageCount <= 0 || introIndex >= pageCount - 1)
         {
+            Debug.Log("[GameManager] 마지막 인트로 페이지 확인 → 게임 시작");
             FinishIntro();
             return;
         }
 
+        introIndex++;
+        Debug.Log($"[GameManager] 인트로 페이지 이동: {introIndex + 1}/{pageCount}");
         uiController.ShowIntroPage(introIndex);
     }
 
     private void FinishIntro()
     {
-        if (useBackendApi)
-        {
-            CurrentState = GameFlowState.WaitingForStart;
-
-            if (GameStartRequested == null)
-            {
-                Debug.LogWarning(
-                    "[GameManager] GameApiClient가 연결되지 않아 로컬 모드로 시작합니다."
-                );
-                BeginGameplay();
-                return;
-            }
-
-            GameStartRequested.Invoke(
-                new GameStartRequest
-                {
-                    gender = playerGender,
-                    age_group = playerAgeGroup,
-                    disaster = scenarioId
-                }
-            );
-        }
-        else
-        {
-            BeginGameplay();
-        }
+        BeginGameplay();
     }
 
-    public void ApplyStartSession(
-        string newSessionId,
-        int referenceBmrKcalDay,
-        int requiredWater72hMl,
-        float maxCarryWeightKg,
-        string expiresAt)
+    /// <summary>
+    /// Inspector의 Button OnClick 또는 디버그용으로 인트로에서 즉시 게임을 시작합니다.
+    /// </summary>
+    public void StartGameplayImmediately()
     {
-        if (CurrentState != GameFlowState.WaitingForStart)
+        if (CurrentState != GameFlowState.Intro)
         {
             return;
-        }
-
-        sessionId = newSessionId;
-
-        if (maxCarryWeightKg > 0f)
-        {
-            maxWeight = maxCarryWeightKg;
         }
 
         BeginGameplay();
     }
 
-    public void ApplyStartRequestFailed(string reason)
-    {
-        Debug.LogWarning(
-            "[GameManager] 게임 시작 API 실패. 로컬 설정으로 진행합니다.\n" + reason
-        );
-
-        if (CurrentState == GameFlowState.WaitingForStart)
-        {
-            BeginGameplay();
-        }
-    }
-
     private void BeginGameplay()
     {
+        Debug.Log($"[GameManager] 게임 플레이 시작 - 제한 시간 {gameDurationSeconds:0}초");
         CurrentState = GameFlowState.Playing;
         elapsedTime = 0f;
         RemainingTime = gameDurationSeconds;
@@ -346,9 +304,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (!inventoryController.HasEmptySlot)
+        if (inventoryController.CurrentItemCount >= MaxItemCount ||
+            !inventoryController.HasEmptySlot)
         {
-            Debug.LogWarning("[GameManager] 인벤토리가 가득 찼습니다.");
+            Debug.LogWarning(
+                $"[GameManager] 아이템은 최대 {MaxItemCount}개까지만 넣을 수 있습니다."
+            );
             return;
         }
 
@@ -361,9 +322,28 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (!prefabMap.TryGetValue(targetItem.ItemId, out ItemPrefabEntry entry))
+        int nextWeightGrams = CurrentWeightGrams + Mathf.Max(0, itemData.weightGrams);
+
+        if (maxWeightGrams > 0 && nextWeightGrams > maxWeightGrams)
         {
-            Debug.LogError($"[GameManager] 프리팹 매핑이 없습니다: {targetItem.ItemId}");
+            Debug.LogWarning(
+                $"[GameManager] 무게 초과로 넣을 수 없습니다. " +
+                $"현재 {CurrentWeightGrams:N0}g + 아이템 {itemData.weightGrams:N0}g " +
+                $"> 최대 {maxWeightGrams:N0}g"
+            );
+
+            onBagWeightRejected?.Invoke();
+            return;
+        }
+
+        string prefabKey = NormalizeItemId(targetItem.ItemId);
+
+        if (!prefabMap.TryGetValue(prefabKey, out ItemPrefabEntry entry))
+        {
+            Debug.LogError(
+                $"[GameManager] 프리팹 매핑이 없습니다: {targetItem.ItemId} " +
+                $"(정규화 키: {prefabKey})"
+            );
             return;
         }
 
@@ -385,7 +365,6 @@ public class GameManager : MonoBehaviour
         }
 
         AddLocalItem(itemData);
-        SendBagLog("ADD", targetItem);
 
         heldItem = null;
         spawnedItems.Remove(targetItem);
@@ -404,43 +383,6 @@ public class GameManager : MonoBehaviour
         RecalculateCurrentWeight();
     }
 
-    private void SendBagLog(string action, RuntimeWorldItem item)
-    {
-        if (!useBackendApi || string.IsNullOrWhiteSpace(sessionId) || item == null)
-        {
-            return;
-        }
-
-        BagLogRequested?.Invoke(
-            new GameLogRequest
-            {
-                session_id = sessionId,
-                action_id = Guid.NewGuid().ToString(),
-                action = action,
-                item_instance_id = item.InstanceId,
-                item_id = item.ItemId,
-                occurred_at = DateTime.UtcNow.ToString("o")
-            }
-        );
-    }
-
-    public void ApplyServerBagState(
-        bool applied,
-        int itemCount,
-        int currentWeightGrams)
-    {
-        if (!applied)
-        {
-            Debug.LogWarning("[GameManager] 서버가 중복 가방 액션으로 판단했습니다.");
-        }
-
-        if (currentWeightGrams >= 0)
-        {
-            CurrentWeight = currentWeightGrams / 1000f;
-            RefreshHud();
-        }
-    }
-
     public void EndGame()
     {
         if (CurrentState != GameFlowState.Playing)
@@ -454,49 +396,25 @@ public class GameManager : MonoBehaviour
 
         LastRuleResult = RuleBasedEvaluator.Evaluate(
             scenarioId,
-            CurrentWeight,
-            maxWeight,
+            CurrentWeightGrams,
+            maxWeightGrams,
             selectedItemQuantities,
             dataLoader
         );
 
         currentResultSuccess = LastRuleResult.isSuccess;
         onGameplayEnded?.Invoke();
-
-        if (useBackendApi && !string.IsNullOrWhiteSpace(sessionId))
-        {
-            CurrentState = GameFlowState.WaitingForResult;
-            uiController.ShowWaitingForResult();
-
-            if (GameResultRequested == null)
-            {
-                ApplyResultRequestFailed("GameApiClient가 연결되지 않았습니다.");
-                return;
-            }
-
-            GameResultRequested.Invoke(sessionId);
-        }
-        else
-        {
-            ApplyFinalResult(
-                currentResultSuccess ? "SUCCESS" : "FAIL",
-                "AI 코멘트를 사용하려면 GameApiClient와 서버 Base URL을 연결하세요.",
-                0
-            );
-        }
+        ShowRuleBasedResult();
     }
 
-    public void ApplyFinalResult(
-        string survivalType,
-        string aiComment,
-        int survivalTimeHours)
+    private void ShowRuleBasedResult()
     {
         if (LastRuleResult == null)
         {
             LastRuleResult = RuleBasedEvaluator.Evaluate(
                 scenarioId,
-                CurrentWeight,
-                maxWeight,
+                CurrentWeightGrams,
+                maxWeightGrams,
                 selectedItemQuantities,
                 dataLoader
             );
@@ -506,28 +424,9 @@ public class GameManager : MonoBehaviour
         CurrentState = GameFlowState.Result;
         resultCardIndex = 0;
 
-        string finalAiComment = string.IsNullOrWhiteSpace(aiComment)
-            ? "AI 코멘트가 비어 있습니다. 서버의 ai_comment 필드를 확인하세요."
-            : aiComment;
-
         uiController.BeginResult(
             currentResultSuccess,
-            LastRuleResult.cardText,
-            finalAiComment,
-            survivalTimeHours
-        );
-    }
-
-    public void ApplyResultRequestFailed(string reason)
-    {
-        Debug.LogWarning(
-            "[GameManager] AI 결과 요청 실패. 룰베이스 결과만 표시합니다.\n" + reason
-        );
-
-        ApplyFinalResult(
-            currentResultSuccess ? "SUCCESS" : "FAIL",
-            "AI 코멘트를 불러오지 못했습니다. 네트워크와 서버 설정을 확인하세요.",
-            0
+            LastRuleResult.cardText
         );
     }
 
@@ -540,7 +439,11 @@ public class GameManager : MonoBehaviour
 
         resultCardIndex++;
 
-        if (resultCardIndex >= 3)
+        int cardCount = uiController != null
+            ? uiController.GetResultCardCount(currentResultSuccess)
+            : 0;
+
+        if (resultCardIndex >= cardCount)
         {
             CurrentState = GameFlowState.Finished;
             onResultFinished?.Invoke();
@@ -558,8 +461,7 @@ public class GameManager : MonoBehaviour
         inventoryController.ClearInventory();
         uiController.ResetAll();
 
-        sessionId = string.Empty;
-        CurrentWeight = 0f;
+        CurrentWeightGrams = 0;
         elapsedTime = 0f;
         RemainingTime = gameDurationSeconds;
         introIndex = 0;
@@ -571,25 +473,31 @@ public class GameManager : MonoBehaviour
 
     private void RecalculateCurrentWeight()
     {
-        float total = 0f;
+        int totalGrams = 0;
 
         foreach (KeyValuePair<string, int> selected in selectedItemQuantities)
         {
             SurvivalItemData item = dataLoader.GetItemById(selected.Key);
             if (item != null)
             {
-                total += item.weight * selected.Value;
+                totalGrams += item.weightGrams * selected.Value;
             }
         }
 
-        CurrentWeight = Mathf.Round(total * 100f) / 100f;
+        CurrentWeightGrams = maxWeightGrams > 0
+            ? Mathf.Clamp(totalGrams, 0, maxWeightGrams)
+            : Mathf.Max(0, totalGrams);
     }
 
     private void RefreshHud()
     {
         if (uiController != null)
         {
-            uiController.UpdateHud(RemainingTime, CurrentWeight, maxWeight);
+            uiController.UpdateHud(
+                RemainingTime,
+                CurrentWeightGrams,
+                maxWeightGrams
+            );
         }
     }
 
@@ -634,11 +542,37 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            if (!prefabMap.ContainsKey(entry.itemId))
+            string normalizedId = NormalizeItemId(entry.itemId);
+
+            if (string.IsNullOrWhiteSpace(normalizedId))
             {
-                prefabMap.Add(entry.itemId, entry);
+                continue;
+            }
+
+            if (prefabMap.ContainsKey(normalizedId))
+            {
+                Debug.LogWarning(
+                    $"[GameManager] 중복 프리팹 itemId를 건너뜁니다: " +
+                    $"{entry.itemId} → {normalizedId}"
+                );
+                continue;
+            }
+
+            prefabMap.Add(normalizedId, entry);
+
+            if (!string.Equals(
+                    entry.itemId,
+                    normalizedId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.Log(
+                    $"[GameManager] 프리팹 itemId 접두어를 자동 보정했습니다: " +
+                    $"{entry.itemId} → {normalizedId}"
+                );
             }
         }
+
+        Debug.Log($"[GameManager] 프리팹 매핑 {prefabMap.Count}개 준비 완료");
     }
 
     private void SpawnRandomItems()
@@ -658,11 +592,17 @@ public class GameManager : MonoBehaviour
             UnityEngine.Random.InitState(fixedSeed);
         }
 
+        int requestedSpawnCount = Mathf.Clamp(
+            spawnCount,
+            1,
+            MaxItemCount
+        );
+
         int created = 0;
 
         try
         {
-            while (created < spawnCount && candidates.Count > 0)
+            while (created < requestedSpawnCount && candidates.Count > 0)
             {
                 int candidateIndex = UnityEngine.Random.Range(0, candidates.Count);
                 SurvivalItemData itemData = candidates[candidateIndex];
@@ -680,7 +620,8 @@ public class GameManager : MonoBehaviour
                 Transform spawnPoint = points[pointIndex];
                 points.RemoveAt(pointIndex);
 
-                SpawnOneItem(itemData, prefabMap[itemData.itemId], spawnPoint);
+                string prefabKey = NormalizeItemId(itemData.itemId);
+                SpawnOneItem(itemData, prefabMap[prefabKey], spawnPoint);
                 created++;
 
                 if (uniqueItemIds)
@@ -733,7 +674,8 @@ public class GameManager : MonoBehaviour
             body = instance.AddComponent<Rigidbody>();
         }
 
-        body.mass = Mathf.Max(0.01f, itemData.weight);
+        // Unity Rigidbody.mass는 kg 단위이므로 JSON의 g 값을 물리 계산용으로만 변환합니다.
+        body.mass = Mathf.Max(0.01f, itemData.weightGrams / 1000f);
         body.useGravity = true;
         body.isKinematic = false;
         body.interpolation = RigidbodyInterpolation.Interpolate;
@@ -798,9 +740,14 @@ public class GameManager : MonoBehaviour
 
         foreach (SurvivalItemData item in dataLoader.ItemDatabase.items)
         {
-            if (item == null ||
-                string.IsNullOrWhiteSpace(item.itemId) ||
-                !prefabMap.ContainsKey(item.itemId))
+            if (item == null || string.IsNullOrWhiteSpace(item.itemId))
+            {
+                continue;
+            }
+
+            string prefabKey = NormalizeItemId(item.itemId);
+
+            if (!prefabMap.ContainsKey(prefabKey))
             {
                 continue;
             }
@@ -851,6 +798,27 @@ public class GameManager : MonoBehaviour
         heldItem = null;
     }
 
+    private static string NormalizeItemId(string itemId)
+    {
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return string.Empty;
+        }
+
+        string normalized = itemId.Trim();
+
+        // Inspector 프리팹 목록이 item_water처럼 작성되어 있어도
+        // JSON의 water와 같은 ID로 자동 매칭합니다.
+        if (normalized.StartsWith(
+                "item_",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring("item_".Length);
+        }
+
+        return normalized;
+    }
+
     private static void SetLayerRecursively(GameObject target, int layer)
     {
         target.layer = layer;
@@ -862,6 +830,13 @@ public class GameManager : MonoBehaviour
     }
 
 #if UNITY_EDITOR
+    private void OnValidate()
+    {
+        spawnCount = Mathf.Clamp(spawnCount, 1, MaxItemCount);
+        gameDurationSeconds = Mathf.Max(1f, gameDurationSeconds);
+        maxWeightGrams = Mathf.Max(0, maxWeightGrams);
+    }
+
     private void OnDrawGizmosSelected()
     {
         if (rayOrigin == null)

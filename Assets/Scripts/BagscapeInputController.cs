@@ -7,38 +7,95 @@ public class BagscapeInputController : MonoBehaviour
     [SerializeField] private InventoryController inventoryController;
 
     [Header("오른손 입력")]
-    [SerializeField] private OVRInput.RawButton triggerButton =
-        OVRInput.RawButton.RIndexTrigger;
-
-    [SerializeField] private OVRInput.RawButton gripButton =
-        OVRInput.RawButton.RHandTrigger;
+    [Tooltip("Quest 컨트롤러의 아날로그 입력값이 이 값 이상이면 눌린 것으로 처리합니다.")]
+    [SerializeField, Range(0.1f, 0.95f)] private float pressThreshold = 0.55f;
 
     [SerializeField] private OVRInput.Controller controller =
         OVRInput.Controller.RTouch;
 
+    [Header("입력 안정화")]
+    [Tooltip("Unity Editor에서 Space=트리거, G=그립으로 테스트합니다.")]
+    [SerializeField] private bool allowEditorKeyboardTest = true;
+
+    private bool triggerWasPressed;
+    private bool gripWasPressed;
+
+    private void Awake()
+    {
+        ResolveReferences();
+    }
+
     private void Start()
     {
-        if (gameManager == null)
-        {
-            gameManager = GameManager.Instance;
-        }
+        ResolveReferences();
+    }
+
+    private void OnEnable()
+    {
+        triggerWasPressed = false;
+        gripWasPressed = false;
     }
 
     private void Update()
     {
+        ResolveReferences();
+
         if (gameManager == null)
         {
             return;
         }
 
-        if (OVRInput.GetDown(triggerButton, controller))
+        // RawButton보다 RawAxis1D가 Quest/OpenXR 환경에서 그립 입력을 더 안정적으로 읽습니다.
+        float triggerValue = OVRInput.Get(
+            OVRInput.RawAxis1D.RIndexTrigger,
+            controller
+        );
+
+        float gripValue = OVRInput.Get(
+            OVRInput.RawAxis1D.RHandTrigger,
+            controller
+        );
+
+        bool triggerPressed = triggerValue >= pressThreshold;
+        bool gripPressed = gripValue >= pressThreshold;
+
+        bool triggerDown = triggerPressed && !triggerWasPressed;
+        bool gripDown = gripPressed && !gripWasPressed;
+
+#if UNITY_EDITOR
+        if (allowEditorKeyboardTest)
+        {
+            triggerDown |= Input.GetKeyDown(KeyCode.Space);
+            gripDown |= Input.GetKeyDown(KeyCode.G);
+        }
+#endif
+
+        if (triggerDown)
         {
             HandleTrigger();
         }
 
-        if (OVRInput.GetDown(gripButton, controller))
+        if (gripDown)
         {
             HandleGrip();
+        }
+
+        triggerWasPressed = triggerPressed;
+        gripWasPressed = gripPressed;
+    }
+
+    private void ResolveReferences()
+    {
+        if (gameManager == null)
+        {
+            gameManager = GameManager.Instance;
+        }
+
+        if (inventoryController == null)
+        {
+            inventoryController = FindFirstObjectByType<InventoryController>(
+                FindObjectsInactive.Include
+            );
         }
     }
 
@@ -70,10 +127,18 @@ public class BagscapeInputController : MonoBehaviour
         if (gameManager.HasHeldItem)
         {
             gameManager.StoreHeldItemInInventory();
+            return;
         }
-        else if (inventoryController != null)
+
+        if (inventoryController == null)
         {
-            inventoryController.ToggleInventory();
+            Debug.LogError(
+                "[BagscapeInput] InventoryController가 연결되지 않았습니다.",
+                this
+            );
+            return;
         }
+
+        inventoryController.ToggleInventory();
     }
 }

@@ -17,7 +17,10 @@ public class SurvivalItemData
     public string itemName;
     public string category;
     public string categoryLabel;
-    public float weight;
+
+    [UnityEngine.Tooltip("아이템 1개의 무게입니다. 단위는 g입니다.")]
+    public int weightGrams;
+
     public int importance;
     public string duplicateGroup;
     public List<string> usageContexts;

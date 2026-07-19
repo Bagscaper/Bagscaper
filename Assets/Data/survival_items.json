@@ -173,24 +173,6 @@
       ]
     },
     {
-      "itemId": "item_lighter",
-      "itemName": "라이터",
-      "category": "Survival",
-      "categoryLabel": "생존",
-      "weight": 0.1,
-      "importance": 3,
-      "duplicateGroup": null,
-      "usageContexts": [
-        "Mountain",
-        "ColdWave"
-      ],
-      "isTrap": false,
-      "allowedSpawnAreas": [
-        "table_1",
-        "table_2"
-      ]
-    },
-    {
       "itemId": "item_blanket",
       "itemName": "담요",
       "category": "Warmth",

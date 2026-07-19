@@ -21,8 +21,8 @@ public static class RuleBasedEvaluator
 
     public static RuleBasedResult Evaluate(
         string disaster,
-        float currentWeight,
-        float maxWeight,
+        int currentWeightGrams,
+        int maxWeightGrams,
         IReadOnlyDictionary<string, int> selectedItems,
         SurvivalDataLoader dataLoader)
     {
@@ -62,6 +62,7 @@ public static class RuleBasedEvaluator
             }
 
             int itemScore = item.importance * quantity;
+
             if (isRelevant)
             {
                 itemScore += quantity;
@@ -77,7 +78,8 @@ public static class RuleBasedEvaluator
         }
 
         result.trapCount = trapCount;
-        result.isOverWeight = maxWeight > 0f && currentWeight > maxWeight;
+        result.isOverWeight =
+            maxWeightGrams > 0 && currentWeightGrams > maxWeightGrams;
         result.score = totalScore;
 
         bool hasEssentialSet =
@@ -92,8 +94,8 @@ public static class RuleBasedEvaluator
             result,
             selectedCount,
             relevantCount,
-            currentWeight,
-            maxWeight
+            currentWeightGrams,
+            maxWeightGrams
         );
 
         return result;
@@ -119,8 +121,16 @@ public static class RuleBasedEvaluator
 
         foreach (string context in item.usageContexts)
         {
-            if (string.Equals(context, "All", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(context, disaster, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(
+                    context,
+                    "All",
+                    StringComparison.OrdinalIgnoreCase
+                ) ||
+                string.Equals(
+                    context,
+                    disaster,
+                    StringComparison.OrdinalIgnoreCase
+                ))
             {
                 return true;
             }
@@ -133,21 +143,27 @@ public static class RuleBasedEvaluator
         RuleBasedResult result,
         int selectedCount,
         int relevantCount,
-        float currentWeight,
-        float maxWeight)
+        int currentWeightGrams,
+        int maxWeightGrams)
     {
         StringBuilder builder = new StringBuilder();
-        builder.AppendLine(result.isSuccess ? "룰베이스 성공 근거" : "룰베이스 실패 이유");
+
+        builder.AppendLine(
+            result.isSuccess
+                ? "룰베이스 성공 근거"
+                : "룰베이스 실패 이유"
+        );
+
         builder.AppendLine();
-        builder.AppendLine($"• 선택 아이템: {selectedCount}개");
+        builder.AppendLine($"• 선택 아이템: {selectedCount}/16개");
         builder.AppendLine($"• 상황 적합 아이템: {relevantCount}개");
         builder.AppendLine($"• 중요도 점수: {result.score}점");
         builder.AppendLine($"• 함정 아이템: {result.trapCount}개");
 
-        if (maxWeight > 0f)
+        if (maxWeightGrams > 0)
         {
             builder.AppendLine(
-                $"• 가방 무게: {currentWeight:0.0}kg / {maxWeight:0.0}kg"
+                $"• 가방 무게: {currentWeightGrams:N0}g / {maxWeightGrams:N0}g"
             );
         }
 
@@ -175,12 +191,16 @@ public static class RuleBasedEvaluator
 
         if (result.trapCount > 0)
         {
-            builder.AppendLine("• 생존 우선순위가 낮은 함정 아이템이 포함되었습니다.");
+            builder.AppendLine(
+                "• 생존 우선순위가 낮은 함정 아이템이 포함되었습니다."
+            );
         }
 
         if (result.isSuccess)
         {
-            builder.AppendLine("• 필수 생존 범주와 무게 조건을 충족했습니다.");
+            builder.AppendLine(
+                "• 필수 생존 범주와 무게 조건을 충족했습니다."
+            );
         }
         else if (result.score < SuccessScoreThreshold)
         {

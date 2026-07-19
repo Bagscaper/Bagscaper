@@ -7,7 +7,6 @@ public class InventorySlotView : MonoBehaviour
     [Header("슬롯 표시")]
     [SerializeField] private Transform previewAnchor;
     [SerializeField] private TMP_Text itemNameText;
-    [SerializeField] private TMP_Text weightText;
 
     public bool IsOccupied { get; private set; }
     public string ItemId { get; private set; }
@@ -36,10 +35,6 @@ public class InventorySlotView : MonoBehaviour
             itemNameText.text = item.itemName;
         }
 
-        if (weightText != null)
-        {
-            weightText.text = $"{item.weight:0.0}kg";
-        }
 
         if (previewPrefab == null || previewAnchor == null)
         {
@@ -71,10 +66,6 @@ public class InventorySlotView : MonoBehaviour
             itemNameText.text = string.Empty;
         }
 
-        if (weightText != null)
-        {
-            weightText.text = string.Empty;
-        }
     }
 
     private static void PreparePreviewObject(GameObject target, int layer)
