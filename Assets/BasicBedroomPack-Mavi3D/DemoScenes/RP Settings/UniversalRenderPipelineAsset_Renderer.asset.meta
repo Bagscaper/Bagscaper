@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f03638c715ef6e24b8e26fcf5220d522
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 215986
+  packageName: Basic Bedroom Starterpack
+  packageVersion: 2.0
+  assetPath: Assets/BasicBedroomPack-Mavi3D/DemoScenes/RP Settings/UniversalRenderPipelineAsset_Renderer.asset
+  uploadId: 554018
